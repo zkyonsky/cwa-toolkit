@@ -1,0 +1,3 @@
+name,email,password,role,assessee,gov_id
+John Doe,johndoe@example.com,password123,User,yes,1
+Jane Smith,janesmith@example.com,password123,Admin,no,
