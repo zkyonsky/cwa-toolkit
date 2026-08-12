@@ -2,7 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     Pencil, Building, Banknote, LineChart, BarChart,
-    CreditCard, Calculator, Star, ClipboardList, Check
+    CreditCard, Calculator, Star, ClipboardList, Check, FileText
 } from '@lucide/vue';
 import { computed } from 'vue';
 
@@ -41,15 +41,6 @@ const steps = [
     },
     {
         number: 4,
-        label: 'Kondisi Ekonomi',
-        icon: LineChart,
-        href: (id: number) => `/assessment-details/${id}/economy-condition`,
-        color: 'bg-blue-600',
-        activeColor: 'bg-blue-700',
-        lightColor: 'bg-blue-100 text-blue-700',
-    },
-    {
-        number: 5,
         label: 'Kondisi Keuangan',
         icon: BarChart,
         href: (id: number) => `/assessment-details/${id}/financial-condition`,
@@ -58,16 +49,16 @@ const steps = [
         lightColor: 'bg-indigo-100 text-indigo-700',
     },
     {
-        number: 6,
-        label: 'Debt Service',
-        icon: CreditCard,
-        href: (id: number) => `/assessment-details/${id}/debt-service`,
-        color: 'bg-purple-600',
-        activeColor: 'bg-purple-700',
-        lightColor: 'bg-purple-100 text-purple-700',
+        number: 5,
+        label: 'Kondisi Ekonomi',
+        icon: LineChart,
+        href: (id: number) => `/assessment-details/${id}/economy-condition`,
+        color: 'bg-blue-600',
+        activeColor: 'bg-blue-700',
+        lightColor: 'bg-blue-100 text-blue-700',
     },
     {
-        number: 7,
+        number: 6,
         label: 'DSCR',
         icon: Calculator,
         href: (id: number) => `/assessment-details/${id}/dscr`,
@@ -76,7 +67,7 @@ const steps = [
         lightColor: 'bg-orange-100 text-orange-700',
     },
     {
-        number: 8,
+        number: 7,
         label: 'Indikasi Rating',
         icon: Star,
         href: (id: number) => `/assessment-details/${id}/indicative-rating`,
@@ -85,7 +76,7 @@ const steps = [
         lightColor: 'bg-amber-100 text-amber-700',
     },
     {
-        number: 9,
+        number: 8,
         label: 'Rencana Aksi',
         icon: ClipboardList,
         href: (id: number) => `/assessment-details/${id}/action-plan`,
@@ -93,6 +84,15 @@ const steps = [
         activeColor: 'bg-rose-700',
         lightColor: 'bg-rose-100 text-rose-700',
     },
+    {
+        number: 9,
+        label: 'Laporan',
+        icon: FileText,
+        href: (id: number) => `/assessment-details/${id}/report`,
+        color: 'bg-slate-600',
+        activeColor: 'bg-slate-700',
+        lightColor: 'bg-slate-100 text-slate-700',
+    }
 ];
 
 const prevStep = computed(() => steps.find(s => s.number === props.currentStep - 1));
@@ -113,28 +113,26 @@ const nextStep = computed(() => steps.find(s => s.number === props.currentStep +
                 <template v-for="(step, index) in steps" :key="step.number">
                     <!-- Step item -->
                     <Link :href="step.href(assessmentId)" class="flex-shrink-0">
-                        <div class="flex items-center gap-1.5 group"
-                            :class="[
-                                'px-2 py-1.5 rounded-lg transition-all duration-200',
-                                step.number === currentStep ? 'bg-gray-100 shadow-sm' : 'hover:bg-gray-50'
-                            ]">
+                        <div class="flex items-center gap-1.5 group" :class="[
+                            'px-2 py-1.5 rounded-lg transition-all duration-200',
+                            step.number === currentStep ? 'bg-gray-100 shadow-sm' : 'hover:bg-gray-50'
+                        ]">
                             <!-- Step circle -->
                             <div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm transition-all"
                                 :class="[
                                     step.number < currentStep ? step.color + ' opacity-70' :
-                                    step.number === currentStep ? step.color + ' ring-2 ring-offset-1 ring-current shadow-md' :
-                                    'bg-gray-200 text-gray-400'
+                                        step.number === currentStep ? step.color + ' ring-2 ring-offset-1 ring-current shadow-md' :
+                                            'bg-gray-200 text-gray-400'
                                 ]">
                                 <component v-if="step.number > currentStep" :is="step.icon" :size="13" />
                                 <Check v-else-if="step.number < currentStep" :size="13" />
                                 <span v-else class="text-[11px]">{{ step.number }}</span>
                             </div>
                             <!-- Step label -->
-                            <span class="text-[11px] font-medium leading-tight whitespace-nowrap"
-                                :class="[
-                                    step.number === currentStep ? 'text-gray-900 font-semibold' :
+                            <span class="text-[11px] font-medium leading-tight whitespace-nowrap" :class="[
+                                step.number === currentStep ? 'text-gray-900 font-semibold' :
                                     step.number < currentStep ? 'text-gray-500' : 'text-gray-400'
-                                ]">
+                            ]">
                                 {{ step.label }}
                             </span>
                         </div>
@@ -173,6 +171,24 @@ const nextStep = computed(() => steps.find(s => s.number === props.currentStep +
 </template>
 
 <style scoped>
-.scrollbar-none::-webkit-scrollbar { display: none; }
-.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 </style>
+
+
+
+// {
+// number: 7,
+// label: 'Debt Service',
+// icon: CreditCard,
+// href: (id: number) => `/assessment-details/${id}/debt-service`,
+// color: 'bg-purple-600',
+// activeColor: 'bg-purple-700',
+// lightColor: 'bg-purple-100 text-purple-700',
+// },

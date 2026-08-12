@@ -109,13 +109,13 @@ const onDragOver = (event: DragEvent) => {
             <div v-if="can('create-assessments')">
                 <Button @click="submit" :disabled="form.processing"
                     class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all active:scale-95">
-                    <Save :size="16" /> Save Changes
+                    <Save :size="16" /> Simpan dan Selesaikan
                 </Button>
             </div>
         </div>
     </div>
 
-    <AssessmentStepper :assessment-id="assessment.id" :current-step="9" />
+    <AssessmentStepper :assessment-id="assessment.id" :current-step="8" />
 
     <div class="p-6 bg-gray-50 min-h-screen">
         <div class="max-w-[1200px] mx-auto">
@@ -124,7 +124,7 @@ const onDragOver = (event: DragEvent) => {
                 class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 backdrop-blur-sm bg-white/90">
                 <div class="bg-teal-600 text-white text-center font-bold text-2xl py-4 shadow-inner">
                     <div class="flex items-center justify-center gap-2">
-                        5_Kesimpulan, Tantangan, dan Rencana Aksi
+                        Kesimpulan, Tantangan, dan Rencana Aksi
                         <HoverCard>
                             <HoverCardTrigger>
                                 <HelpCircle :size="20" class="text-white" />

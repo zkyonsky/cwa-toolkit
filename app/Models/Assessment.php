@@ -22,12 +22,12 @@ class Assessment extends Model
 
     public function infrasPriorities()
     {
-        return $this->hasMany(infras_priority::class, 'assessment_id');
+        return $this->hasMany(Infras_priority::class, 'assessment_id');
     }
 
     public function infrasConclusion()
     {
-        return $this->hasOne(infras_conclusion::class, 'assessment_id');
+        return $this->hasOne(Infras_conclusion::class, 'assessment_id');
     }
 
     public function debtService()

@@ -146,17 +146,17 @@ const autonomyChartData = computed(() => ({
     labels: props.chartData.years,
     datasets: [
         {
-            label: 'Perc. PAD',
+            label: '% PAD',
             backgroundColor: '#63b3ac',
             data: props.chartData.autonomy.pad,
         },
         {
-            label: 'Perc. Pendapatan Transfer',
+            label: '% Pendapatan Transfer',
             backgroundColor: '#ed8936',
             data: props.chartData.autonomy.transfer,
         },
         {
-            label: 'Perc. Pendapatan Lain-lain',
+            label: '% Pendapatan Lain-lain',
             backgroundColor: '#a0aec0',
             data: props.chartData.autonomy.other,
         },

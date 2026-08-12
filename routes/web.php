@@ -93,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //route upload data
     Route::middleware(['permission:view-users'])->group(function () {
         Route::get('upload-data', [\App\Http\Controllers\UploadDataController::class, 'index'])->name('upload-data.index');
-        Route::post('upload-data/{type}', [\App\Http\Controllers\UploadDataController::class, 'upload'])->name('upload-data.upload');
+        Route::post('upload-data/{type}', [\App\Http\Controllers\UploadDataController::class, 'upload'])->middleware('throttle:10,1')->name('upload-data.upload');
         Route::get('upload-data/template/{type}', [\App\Http\Controllers\UploadDataController::class, 'downloadTemplate'])->name('upload-data.template');
     });
 
@@ -104,9 +104,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('assessment-details/{assessment}/budget-real', [\App\Http\Controllers\AssessmentDetail\BudgetRealController::class, 'edit'])->name('assessment-details.budget-real.edit');
         Route::put('assessment-details/{assessment}/budget-real', [\App\Http\Controllers\AssessmentDetail\BudgetRealController::class, 'update'])->name('assessment-details.budget-real.update');
+        Route::delete('assessment-details/{assessment}/budget-real', [\App\Http\Controllers\AssessmentDetail\BudgetRealController::class, 'destroy'])->name('assessment-details.budget-real.destroy')->middleware('permission:delete-budget_reals');
 
         Route::get('assessment-details/{assessment}/economy-condition', [\App\Http\Controllers\AssessmentDetail\EconomyConditionController::class, 'edit'])->name('assessment-details.economy-condition.edit');
         Route::put('assessment-details/{assessment}/economy-condition', [\App\Http\Controllers\AssessmentDetail\EconomyConditionController::class, 'update'])->name('assessment-details.economy-condition.update');
+        Route::delete('assessment-details/{assessment}/economy-condition', [\App\Http\Controllers\AssessmentDetail\EconomyConditionController::class, 'destroy'])->name('assessment-details.economy-condition.destroy')->middleware('permission:delete-economy_indicators');
 
         Route::get('assessment-details/{assessment}/financial-condition', [\App\Http\Controllers\AssessmentDetail\FinancialConditionController::class, 'edit'])->name('assessment-details.financial-condition.edit');
         Route::put('assessment-details/{assessment}/financial-condition', [\App\Http\Controllers\AssessmentDetail\FinancialConditionController::class, 'update'])->name('assessment-details.financial-condition.update');
@@ -116,12 +118,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('assessment-details/{assessment}/dscr', [\App\Http\Controllers\AssessmentDetail\DscrController::class, 'edit'])->name('assessment-details.dscr.edit');
         Route::put('assessment-details/{assessment}/dscr', [\App\Http\Controllers\AssessmentDetail\DscrController::class, 'update'])->name('assessment-details.dscr.update');
+        Route::delete('assessment-details/{assessment}/dscr/budget-plan', [\App\Http\Controllers\AssessmentDetail\DscrController::class, 'destroyBudgetPlan'])->name('assessment-details.dscr.destroy-budget-plan')->middleware('permission:delete-budget_plans');
 
         Route::get('assessment-details/{assessment}/indicative-rating', [\App\Http\Controllers\AssessmentDetail\IndicativeRatingController::class, 'edit'])->name('assessment-details.indicative-rating.edit');
         Route::put('assessment-details/{assessment}/indicative-rating', [\App\Http\Controllers\AssessmentDetail\IndicativeRatingController::class, 'update'])->name('assessment-details.indicative-rating.update');
 
         Route::get('assessment-details/{assessment}/action-plan', [\App\Http\Controllers\AssessmentDetail\ActionPlanController::class, 'edit'])->name('assessment-details.action-plan.edit');
         Route::put('assessment-details/{assessment}/action-plan', [\App\Http\Controllers\AssessmentDetail\ActionPlanController::class, 'update'])->name('assessment-details.action-plan.update');
+        Route::get('assessment-details/{assessment}/report', [\App\Http\Controllers\AssessmentDetail\ReportController::class, 'show'])->name('assessment-details.report.show');
     });
 
 });

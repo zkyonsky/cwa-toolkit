@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Economy_indicator extends Model
 {
+    use HasFactory;
+
     protected $table = 'economy_indicators';
     protected $primaryKey = 'id';
     protected $fillable = [

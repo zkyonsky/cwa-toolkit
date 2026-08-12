@@ -13,27 +13,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
         $this->call([
-                // RolesTableSeeder::class,
-                // PermissionsTableSeeder::class,
-                // UserTableSeeder::class,
-                // GovsSeeder::class,
-                // Budget_realSeeder::class,
-                // Economy_indicatorSeeder::class,
-                // Budget_planSeeder::class,
-                // FinancingSeeder::class,
-                // Sectoral_gdpSeeder::class,
-                // SectoralGdpsYearSeeder::class,
+            // RolesTableSeeder::class,
+            PermissionsTableSeeder::class,
+            // UserTableSeeder::class,
+            // GovsSeeder::class,
+            // Budget_realSeeder::class,
+            // Economy_indicatorSeeder::class,
+            // Budget_planSeeder::class,
+            // FinancingSeeder::class,
+            // Sectoral_gdpSeeder::class,
+            // SectoralGdpsYearSeeder::class,
             // ChallengeSeeder::class,
             // ChallengeCategorySeeder::class,
-            ChallengeActionSeeder::class,
+            // ChallengeActionSeeder::class,
         ]);
     }
 }

@@ -120,11 +120,23 @@ class EconomyConditionController extends Controller
 
         $sectoralGdpData = $request->input('sectoralGdp');
         $sectors = [
-            'agriculture_forestry_fishery', 'mining_quarrying', 'processing_industry',
-            'electricity_gas', 'water_waste', 'contruction', 'trade_vehicle_repair',
-            'transportation_warehousing', 'acomodation_food_beverage', 'information_communication',
-            'finance_insurance', 'real_estate', 'company_service', 'gov_adm_defense_sosial_security',
-            'education_service', 'health_social_service', 'other_service'
+            'agriculture_forestry_fishery',
+            'mining_quarrying',
+            'processing_industry',
+            'electricity_gas',
+            'water_waste',
+            'contruction',
+            'trade_vehicle_repair',
+            'transportation_warehousing',
+            'acomodation_food_beverage',
+            'information_communication',
+            'finance_insurance',
+            'real_estate',
+            'company_service',
+            'gov_adm_defense_sosial_security',
+            'education_service',
+            'health_social_service',
+            'other_service'
         ];
 
         $totalGdp = 0;
@@ -141,6 +153,27 @@ class EconomyConditionController extends Controller
         $gov->economy_indicator()->updateOrCreate(['year' => $year], $economyIndicatorData);
         $gov->sectoral_gdp()->updateOrCreate(['year' => $year], $sectoralGdpData);
 
-        return redirect()->back()->with('message', 'Economy Condition data updated successfully!');
+        return redirect()->route("assessment-details.dscr.edit", $assessment->id)->with("message", "Ekonomi berhasil diisi!");
+    }
+
+    public function destroy(Request $request, Assessment $assessment)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+        ]);
+
+        $assessment->load('assessee.gov');
+        $gov = $assessment->assessee->gov;
+
+        if (!$gov) {
+            return redirect()->back()->with('error', 'Gov not found');
+        }
+
+        $year = $request->year;
+
+        $gov->economy_indicator()->where('year', $year)->delete();
+        $gov->sectoral_gdp()->where('year', $year)->delete();
+
+        return redirect()->back()->with('message', "Data ekonomi tahun {$year} berhasil dihapus.");
     }
 }

@@ -2,22 +2,22 @@
 import { computed, ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Rocket, Plus, ChevronLeft, Save } from '@lucide/vue';
+import { Rocket, Plus, ChevronLeft, Save, Trash, Pencil } from '@lucide/vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AssessmentStepper from '@/components/AssessmentStepper.vue';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import {can} from '@/lib/can';
+import { can } from '@/lib/can';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { HelpCircle } from "@lucide/vue";
 
@@ -30,7 +30,7 @@ const props = defineProps({
   debtService: Object as () => any,
 });
 
-const bp = props.budgetPlan || {};
+const bp = ref<any>({ ...(props.budgetPlan || {}) });
 const ds = props.debtService || {};
 const fn = props.financing || {};
 
@@ -42,6 +42,9 @@ const form = useForm({
   max_loan: null as number | null,
   loan_withdrawal_plus_os: null as number | null,
   unappropiated_revenue: null as number | null,
+  ds_exist: fn.ds_exist || null as number | null,
+  outstanding_smi: fn.os_debt_smi || null as number | null,
+  outstanding_lainnya: fn.os_debt_lainnya || null as number | null,
 });
 
 const formatCurrency = (value: number) => {
@@ -50,7 +53,7 @@ const formatCurrency = (value: number) => {
 };
 
 // Calculations as Computed Properties
-const bpVal = (key: string) => bp[key] || 0;
+const bpVal = (key: string) => bp.value[key] || 0;
 
 // PAD
 const p_air_tanah_10 = computed(() => bpVal('underground_water_tax'));
@@ -67,7 +70,7 @@ const padEarmarked = computed(() => {
 const padNonEarmarked = computed(() => bpVal('self_revenue') - padEarmarked.value);
 
 // DAU
-const dau_total = 603765164000; // Constant value from template
+const dau_total = computed(() => bpVal('general_allocation_fund'));
 const dau_pendidikan = computed(() => bpVal('general_allocation_fund_education'));
 const dau_kesehatan = computed(() => bpVal('general_allocation_fund_health'));
 const dau_pu = computed(() => bpVal('general_allocation_fund_public_work'));
@@ -78,7 +81,7 @@ const dauEarmarked = computed(() => {
   return dau_pendidikan.value + dau_kesehatan.value + dau_pu.value + dau_p3k.value + dau_kelurahan.value;
 });
 
-const dauNonEarmarked = computed(() => dau_total - dauEarmarked.value);
+const dauNonEarmarked = computed(() => dau_total.value - dauEarmarked.value);
 
 // DBH
 const dbh_cht = computed(() => bpVal('profit_sharing_fund_cigarette'));
@@ -128,17 +131,17 @@ const netBelanjaPegawai = computed(() => bpVal('employee_spending') - bgEarmarke
 
 // PEMBILANG DSCR
 const pembilangDscr = computed(() => {
-  return padNonEarmarked.value + dauNonEarmarked.value + dbhNonEarmarked.value + otsus.value + 
-         tadNonEarmarked.value + llNonEarmarked.value - 
-         pengurang_bagi_hasil.value - pengurang_jasa_layanan.value - pengurang_dana_desa.value - 
-         netBelanjaPegawai.value;
+  return padNonEarmarked.value + dauNonEarmarked.value + dbhNonEarmarked.value + otsus.value +
+    tadNonEarmarked.value + llNonEarmarked.value -
+    pengurang_bagi_hasil.value - pengurang_jasa_layanan.value - pengurang_dana_desa.value -
+    netBelanjaPegawai.value;
 });
 
 // PENYEBUT DSCR
 const pb_pokok = computed(() => ds.avg_annual_return || 0);
 const pb_bunga = computed(() => ds.avg_annual_interest || 0);
 const pb_biaya = computed(() => ds.avg_annual_cost || 0);
-const pe_smi = computed(() => fn.ds_exist || 0);
+const pe_smi = computed(() => form.ds_exist || 0);
 
 const penyebutDscr = computed(() => {
   return pb_pokok.value + pb_bunga.value + pb_biaya.value + pe_smi.value;
@@ -150,8 +153,8 @@ const dscrRatio = computed(() => penyebutDscr.value > 0 ? (pembilangDscr.value /
 const pendapatanTidakDitentukanPenggunaan = computed(() => netBelanjaPegawai.value + pembilangDscr.value);
 const maxPinjaman75 = computed(() => pendapatanTidakDitentukanPenggunaan.value * 0.75);
 const pinjamanDitarik = computed(() => ds.plafond || 0);
-const outstandingSmi = computed(() => fn.lender === 'SMI' ? (fn.os_debt || 0) : 0);
-const outstandingLainnya = computed(() => fn.lender !== 'SMI' ? (fn.os_debt || 0) : 0);
+const outstandingSmi = computed(() => form.outstanding_smi || 0);
+const outstandingLainnya = computed(() => form.outstanding_lainnya || 0);
 const totalPinjaman = computed(() => pinjamanDitarik.value + outstandingSmi.value + outstandingLainnya.value);
 const pctTotalTerhadapPendapatan = computed(() => pendapatanTidakDitentukanPenggunaan.value > 0 ? (totalPinjaman.value / pendapatanTidakDitentukanPenggunaan.value) * 100 : 0);
 
@@ -161,56 +164,49 @@ const submit = () => {
   form.max_loan = maxPinjaman75.value;
   form.loan_withdrawal_plus_os = totalPinjaman.value;
   form.unappropiated_revenue = pendapatanTidakDitentukanPenggunaan.value;
-  console.log('Submitting form with data:', form.data());
   form.put(`/assessment-details/${props.assessment.id}/dscr`, {
     preserveScroll: true,
-    onSuccess: () => {
-      console.log('Update successful');
-    },
-    onError: (errors) => {
-      console.error('Update failed with errors:', errors);
-    }
   });
 };
 
 const isModalOpen = ref(false);
 
 const newYearForm = ref({
-    year: (props.year || new Date().getFullYear()) + 1,
-    self_revenue: 0,
-    underground_water_tax: 0,
-    street_lighting_tax: 0,
-    electricity_tax: 0,
-    opsen_vehicle_tax: 0,
-    blud_revenue: 0,
-    cigarette_tax: 0,
-    shared_cigarette_tax: 0,
-    vehicle_tax: 0,
-    shared_vehicle_tax: 0,
-    general_allocation_fund: 0,
-    general_allocation_fund_education: 0,
-    general_allocation_fund_health: 0,
-    general_allocation_fund_public_work: 0,
-    p3k_allowance: 0,
-    general_allocation_fund_district: 0,
-    profit_sharing_fund: 0,
-    profit_sharing_fund_cigarette: 0,
-    profit_sharing_fund_sawit: 0,
-    profit_sharing_fund_reboisation: 0,
-    add_profit_sharing_fund_oli_gas_otsus: 0,
-    special_autonomy: 0,
-    inter_regional_transfer_revenue: 0,
-    '10_percent_shared_vehicle_tax': 0,
-    '50_percent_shared_cigarette_tax': 0,
-    other_revenue: 0,
-    central_gov_grant: 0,
-    national_health_revenue: 0,
-    sharing_fund_spending: 0,
-    village_fund_allocation: 0,
-    employee_spending: 0,
-    teacher_non_certification_allowance: 0,
-    teacher_certification_allowance: 0,
-    regional_teacher_additional_allowance: 0,
+  year: (props.year || new Date().getFullYear()) + 1,
+  self_revenue: 0,
+  underground_water_tax: 0,
+  street_lighting_tax: 0,
+  electricity_tax: 0,
+  opsen_vehicle_tax: 0,
+  blud_revenue: 0,
+  cigarette_tax: 0,
+  shared_cigarette_tax: 0,
+  vehicle_tax: 0,
+  shared_vehicle_tax: 0,
+  general_allocation_fund: 0,
+  general_allocation_fund_education: 0,
+  general_allocation_fund_health: 0,
+  general_allocation_fund_public_work: 0,
+  p3k_allowance: 0,
+  general_allocation_fund_district: 0,
+  profit_sharing_fund: 0,
+  profit_sharing_fund_cigarette: 0,
+  profit_sharing_fund_sawit: 0,
+  profit_sharing_fund_reboisation: 0,
+  add_profit_sharing_fund_oli_gas_otsus: 0,
+  special_autonomy: 0,
+  inter_regional_transfer_revenue: 0,
+  '10_percent_shared_vehicle_tax': 0,
+  '50_percent_shared_cigarette_tax': 0,
+  other_revenue: 0,
+  central_gov_grant: 0,
+  national_health_revenue: 0,
+  sharing_fund_spending: 0,
+  village_fund_allocation: 0,
+  employee_spending: 0,
+  teacher_non_certification_allowance: 0,
+  teacher_certification_allowance: 0,
+  regional_teacher_additional_allowance: 0,
 });
 
 const modalGroups = [
@@ -281,15 +277,83 @@ const modalGroups = [
   }
 ];
 
+const isEditModal = ref(false);
+
+const openAddModal = () => {
+  isEditModal.value = false;
+  newYearForm.value = {
+    year: (props.year || new Date().getFullYear()) + 1,
+    self_revenue: 0,
+    underground_water_tax: 0,
+    street_lighting_tax: 0,
+    electricity_tax: 0,
+    opsen_vehicle_tax: 0,
+    blud_revenue: 0,
+    cigarette_tax: 0,
+    shared_cigarette_tax: 0,
+    vehicle_tax: 0,
+    shared_vehicle_tax: 0,
+    general_allocation_fund: 0,
+    general_allocation_fund_education: 0,
+    general_allocation_fund_health: 0,
+    general_allocation_fund_public_work: 0,
+    p3k_allowance: 0,
+    general_allocation_fund_district: 0,
+    profit_sharing_fund: 0,
+    profit_sharing_fund_cigarette: 0,
+    profit_sharing_fund_sawit: 0,
+    profit_sharing_fund_reboisation: 0,
+    add_profit_sharing_fund_oli_gas_otsus: 0,
+    special_autonomy: 0,
+    inter_regional_transfer_revenue: 0,
+    '10_percent_shared_vehicle_tax': 0,
+    '50_percent_shared_cigarette_tax': 0,
+    other_revenue: 0,
+    central_gov_grant: 0,
+    national_health_revenue: 0,
+    sharing_fund_spending: 0,
+    availability_payment: 0,
+    village_fund_allocation: 0,
+    employee_spending: 0,
+    teacher_non_certification_allowance: 0,
+    teacher_certification_allowance: 0,
+    regional_teacher_additional_allowance: 0,
+  };
+  isModalOpen.value = true;
+};
+
+const openEditModal = () => {
+  isEditModal.value = true;
+  newYearForm.value = { ...bp.value };
+  isModalOpen.value = true;
+};
+
 const saveNewBudgetPlan = () => {
-    router.put(`/assessment-details/${props.assessment.id}/dscr`, {
-        budgetPlan: newYearForm.value
-    }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            isModalOpen.value = false;
-        }
-    });
+  router.put(`/assessment-details/${props.assessment.id}/dscr`, {
+    budgetPlan: newYearForm.value
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      if (isEditModal.value) {
+        bp.value = { ...newYearForm.value };
+      }
+      isModalOpen.value = false;
+    }
+  });
+};
+
+// Delete
+const isDeleteDialogOpen = ref(false);
+
+// Delete logic
+const deleteBudgetPlan = () => {
+  router.delete(`/assessment-details/${props.assessment.id}/dscr/budget-plan`, {
+    data: { year: props.year },
+    preserveScroll: true,
+    onSuccess: () => {
+      isDeleteDialogOpen.value = false;
+    },
+  });
 };
 
 </script>
@@ -306,22 +370,24 @@ const saveNewBudgetPlan = () => {
     </AlertDescription>
   </Alert>
 
-  <AssessmentStepper :assessment-id="assessment.id" :current-step="7" />
+  <AssessmentStepper :assessment-id="assessment.id" :current-step="6" />
 
   <div class="p-6 bg-gray-50 min-h-screen font-sans text-sm">
     <div class="max-w-6xl mx-auto">
       <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-        
+
         <div class="bg-teal-600 text-white py-4 text-center shadow-inner">
           <div class="flex items-center justify-center gap-2">
-            <h1 class="text-2xl font-bold">4b_Debt Service Coverage Ratio (DSCR)</h1>
+            <h1 class="text-2xl font-bold">Debt Service Coverage Ratio (DSCR)</h1>
             <HoverCard>
               <HoverCardTrigger>
                 <HelpCircle :size="20" class="text-white" />
               </HoverCardTrigger>
               <HoverCardContent>
-                Pada DSCR (Debt Service Coverage Ratio), Saudara diminta untuk memberikan data perencanaan pinjaman mulai
-                dari plafon pinjaman, tenor pinjaman, tanggal pencairan pertama serta rate atas pinjaman, diakhiri dengan
+                Pada DSCR (Debt Service Coverage Ratio), Saudara diminta untuk menginput data Pendapatan Daerah  dan merencanakan pinjaman
+                mulai
+                dari plafon pinjaman, tenor pinjaman, tanggal pencairan pertama serta rate atas pinjaman, diakhiri
+                dengan
                 kesimpulan atas perhitungan Debt Service Coverage Ratio (DSCR), tantangan dan rencana aksi sebagai hasil
                 akhir tahap ini.
               </HoverCardContent>
@@ -332,184 +398,490 @@ const saveNewBudgetPlan = () => {
 
         <div class="p-6">
           <div class="flex justify-between items-center mb-4 px-1 font-bold text-base border-b pb-2">
-      <div>Perhitungan DSCR APBD {{ year }}</div>
-      <div class="flex items-center gap-4">
-        <div>{{ govName }}</div>
-        
-        <Dialog v-model:open="isModalOpen">
-            <DialogTrigger as-child v-if="can('create-assessments')">
-                <Button class="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-2 h-8 text-xs">
-                    <Plus :size="14" /> Tambah Data Budget Plan
-                </Button>
-            </DialogTrigger>
-            <DialogContent class="max-w-4xl max-h-[90vh] flex flex-col p-0">
-                <DialogHeader class="p-6 pb-0">
-                    <DialogTitle>Tambah Data Budget Plan Terbaru</DialogTitle>
+            <div>Perhitungan DSCR APBD {{ year }}</div>
+            <div class="flex items-center gap-4">
+              <div>{{ govName }}</div>
+
+              <Dialog v-model:open="isModalOpen">
+                <DialogTrigger as-child v-if="can('create-assessments')">
+                  <Button @click="openAddModal" class="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-2 h-8 text-xs">
+                    <Plus :size="14" /> Tambah Data
+                  </Button>
+                </DialogTrigger>
+                <DialogContent class="max-w-4xl max-h-[90vh] flex flex-col p-0">
+                  <DialogHeader class="p-6 pb-0">
+                    <DialogTitle>{{ isEditModal ? 'Edit Data Budget Plan' : 'Tambah Data Budget Plan Terbaru' }}</DialogTitle>
                     <DialogDescription>
-                        Masukkan data APBD terbaru untuk digunakan pada kalkulasi DSCR saat ini.
+                      {{ isEditModal ? 'Perbarui data APBD untuk kalkulasi DSCR.' : 'Masukkan data APBD terbaru untuk digunakan pada kalkulasi DSCR saat ini.' }}
                     </DialogDescription>
-                </DialogHeader>
+                  </DialogHeader>
 
-                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                  <div class="flex-1 overflow-y-auto p-6 space-y-6">
                     <div v-for="group in modalGroups" :key="group.title" class="space-y-3">
-                        <h3 class="font-bold border-b pb-2 text-teal-700">{{ group.title }}</h3>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3">
-                            <div v-for="item in group.items" :key="item.key" class="space-y-1">
-                                <Label class="text-xs">{{ item.label }}</Label>
-                                <Input type="number" step="0.01" v-model="newYearForm[item.key as keyof typeof newYearForm]" class="h-8 shadow-sm" />
-                            </div>
+                      <h3 class="font-bold border-b pb-2 text-teal-700">{{ group.title }}</h3>
+                      <div class="grid grid-cols-2 gap-x-8 gap-y-3">
+                        <div v-for="item in group.items" :key="item.key" class="space-y-1">
+                          <Label class="text-xs">{{ item.label }}</Label>
+                          <Input type="number" step="0.01" v-model="newYearForm[item.key as keyof typeof newYearForm]"
+                            class="h-8 shadow-sm" />
                         </div>
+                      </div>
                     </div>
-                </div>
+                  </div>
 
-                <DialogFooter class="p-6 pt-2 bg-gray-50 border-t">
+                  <DialogFooter class="p-6 pt-2 bg-gray-50 border-t">
                     <Button variant="outline" @click="isModalOpen = false">Batal</Button>
-                    <Button @click="saveNewBudgetPlan" class="bg-teal-600 hover:bg-teal-700 text-white">Simpan Data Baru</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-      </div>
-    </div>
+                    <Button @click="saveNewBudgetPlan" class="bg-teal-600 hover:bg-teal-700 text-white">Simpan Data</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-    <!-- Table Section -->
-    <div class="overflow-x-auto shadow border text-sm mb-6 pb-2">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-gray-100">
-            <th class="border p-2 text-left w-1/2">Nama Akun</th>
-            <th class="border p-2 text-right">APBD {{ year }}</th>
-            <th class="border p-2 text-left">Keterangan</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- PAD -->
-          <tr class="font-semibold"><td class="border p-2">PAD</td><td class="border p-2 text-right">{{ formatCurrency(bpVal('self_revenue')) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(padEarmarked) }}</td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">10% dari Pajak Air Tanah</td><td class="border p-2 text-right">{{ formatCurrency(p_air_tanah_10) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Pajak Air Tanah</td></tr>
-          <tr><td class="border p-2 pl-6">10% dari PBJT TL atau Pajak Penerangan Jalan</td><td class="border p-2 text-right">{{ formatCurrency(p_pbjt_tl_10) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari PBJT TL atau PPJ</td></tr>
-          <tr><td class="border p-2 pl-6">10% dari Opsen PKB</td><td class="border p-2 text-right">{{ formatCurrency(p_opsen_pkb_10) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Opsen PKB</td></tr>
-          <tr><td class="border p-2 pl-6">Pendapatan BLUD</td><td class="border p-2 text-right">{{ formatCurrency(p_blud) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">50% dari (Pajak Rokok - Bagi Hasil Pajak Rokok)</td><td class="border p-2 text-right">{{ formatCurrency(p_rokok_50) }}</td><td class="border p-2 text-xs italic text-gray-500">Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">10% dari (PKB - Bagi Hasil PKB)</td><td class="border p-2 text-right">{{ formatCurrency(p_pkb_10) }}</td><td class="border p-2 text-xs italic text-gray-500">Provinsi</td></tr>
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ PAD Non Earmarked</td><td class="border p-2 text-right">{{ formatCurrency(padNonEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+              <!-- Edit Budget Plan Button -->
+              <Button v-if="can('create-assessments')" variant="outline" size="sm"
+                class="flex items-center gap-2 h-8 text-xs border-teal-600 text-teal-700 hover:bg-teal-50"
+                @click="openEditModal">
+                <Pencil :size="14" /> Edit Data {{ year }}
+              </Button>
 
-          <!-- DAU -->
-          <tr class="font-semibold"><td class="border p-2 mt-2">DAU</td><td class="border p-2 text-right">{{ formatCurrency(dau_total) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(dauEarmarked) }}</td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">DAU - Pendidikan</td><td class="border p-2 text-right">{{ formatCurrency(dau_pendidikan) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAU - Kesehatan</td><td class="border p-2 text-right">{{ formatCurrency(dau_kesehatan) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAU - Pekerjaan Umum</td><td class="border p-2 text-right">{{ formatCurrency(dau_pu) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAU - P3K</td><td class="border p-2 text-right">{{ formatCurrency(dau_p3k) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAU - Kelurahan</td><td class="border p-2 text-right">{{ formatCurrency(dau_kelurahan) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ DAU Non Earmarked</td><td class="border p-2 text-right">{{ formatCurrency(dauNonEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+              <!-- Delete Budget Plan Button -->
+              <Button v-if="can('delete-budget_plans')" variant="destructive" size="sm"
+                class="flex items-center gap-2 h-8 text-xs" @click="isDeleteDialogOpen = true">
+                <Trash :size="14" /> Hapus {{ year }}
+              </Button>
 
-          <!-- DBH -->
-          <tr class="font-semibold"><td class="border p-2 mt-2">DBH</td><td class="border p-2 text-right">{{ formatCurrency(bpVal('profit_sharing_fund')) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(dbhEarmarked) }}</td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">DBH CHT</td><td class="border p-2 text-right">{{ formatCurrency(dbh_cht) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DBH Sawit</td><td class="border p-2 text-right">{{ formatCurrency(dbh_sawit) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DBH Dana Reboisasi</td><td class="border p-2 text-right">{{ formatCurrency(dbh_reboisasi) }}</td><td class="border p-2 text-xs italic text-gray-500">Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Tambahan DBH Migas dalam rangka Otsus</td><td class="border p-2 text-right">{{ formatCurrency(dbh_otsus) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ DBH Non Earmarked</td><td class="border p-2 text-right">{{ formatCurrency(dbhNonEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+              <!-- Delete Confirmation Dialog -->
+              <Dialog v-model:open="isDeleteDialogOpen">
+                <DialogContent class="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                    <DialogDescription>
+                      Apakah Anda yakin ingin menghapus data Budget Plan tahun <strong>{{ year }}</strong>?
+                      Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" @click="isDeleteDialogOpen = false">Batal</Button>
+                    <Button variant="destructive" @click="deleteBudgetPlan">Hapus</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
 
-          <!-- OTSUS -->
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ OTSUS</td><td class="border p-2 text-right">{{ formatCurrency(otsus) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+          <!-- Table Section -->
+          <div class="overflow-x-auto shadow border text-sm mb-6 pb-2">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border p-2 text-left w-1/2">Nama Akun</th>
+                  <th class="border p-2 text-right">APBD {{ year }}</th>
+                  <th class="border p-2 text-left">Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- PAD -->
+                <tr class="font-semibold">
+                  <td class="border p-2">PAD</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bpVal('self_revenue')) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(padEarmarked) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">10% dari Pajak Air Tanah</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_air_tanah_10) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Pajak Air Tanah</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">10% dari PBJT TL atau Pajak Penerangan Jalan</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_pbjt_tl_10) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari PBJT TL atau PPJ</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">10% dari Opsen PKB</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_opsen_pkb_10) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Opsen PKB</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Pendapatan BLUD</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_blud) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">50% dari (Pajak Rokok - Bagi Hasil Pajak Rokok)</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_rokok_50) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">10% dari (PKB - Bagi Hasil PKB)</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(p_pkb_10) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ PAD Non Earmarked</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(padNonEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
 
-          <!-- Transfer Antar Daerah -->
-          <tr class="font-semibold"><td class="border p-2 mt-2">Pendapatan Transfer Antar Daerah</td><td class="border p-2 text-right">{{ formatCurrency(bpVal('inter_regional_transfer_revenue')) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td></tr>
-          <tr><td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(tadEarmarked) }} </td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td></tr>
-          <tr><td class="border p-2 pl-6">10% dari Pendapatan Bagi Hasil PKB</td><td class="border p-2 text-right">{{ formatCurrency(tad_pkb_10) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Pendapatan Bagi Hasil PKB</td></tr>
-          <tr><td class="border p-2 pl-6">50% dari Pendapatan Bagi Hasil Pajak Rokok</td><td class="border p-2 text-right">{{ formatCurrency(tad_rokok_50) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 50% dari Pendapatan Bagi Hasil Pajak Rokok</td></tr>
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ Pendapatan Transfer Antar Daerah Non Earmarked</td><td class="border p-2 text-right">{{ formatCurrency(tadNonEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td></tr>
+                <!-- DAU -->
+                <tr class="font-semibold">
+                  <td class="border p-2 mt-2">DAU</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_total) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dauEarmarked) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - Pendidikan</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_pendidikan) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - Kesehatan</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_kesehatan) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - Pekerjaan Umum</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_pu) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - P3K</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_p3k) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - Kelurahan</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dau_kelurahan) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ DAU Non Earmarked</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dauNonEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
 
-          <!-- Lain-lain -->
-          <tr class="font-semibold"><td class="border p-2 mt-2">Lain-Lain Pendapatan Daerah yang Sah</td><td class="border p-2 text-right">{{ formatCurrency(bpVal('other_revenue')) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(llEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Hibah Pemerintah Pusat</td><td class="border p-2 text-right">{{ formatCurrency(ll_hibah) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Pendapatan Dana Kapitasi JKN</td><td class="border p-2 text-right">{{ formatCurrency(ll_jkn) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-blue-50"><td class="border p-2 pl-4 text-blue-900">+ Lain-Lain Pendapatan yang Sah Non Earmarked</td><td class="border p-2 text-right">{{ formatCurrency(llNonEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+                <!-- DBH -->
+                <tr class="font-semibold">
+                  <td class="border p-2 mt-2">DBH</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bpVal('profit_sharing_fund')) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbhEarmarked) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DBH CHT</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbh_cht) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DBH Sawit</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbh_sawit) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DBH Dana Reboisasi</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbh_reboisasi) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Tambahan DBH Migas dalam rangka Otsus</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbh_otsus) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ DBH Non Earmarked</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(dbhNonEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
 
-          <!-- Pengurangs -->
-          <tr class="font-bold bg-red-50"><td class="border p-2 pl-4 text-red-900">- Belanja Bagi Hasil</td><td class="border p-2 text-right">{{ formatCurrency(pengurang_bagi_hasil) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-red-50"><td class="border p-2 pl-4 text-red-900">- Belanja Jasa Ketersediaan Layanan (Availability Payment)</td><td class="border p-2 text-right">{{ formatCurrency(pengurang_jasa_layanan) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-red-50"><td class="border p-2 pl-4 text-red-900">- Alokasi Dana Desa</td><td class="border p-2 text-right">{{ formatCurrency(pengurang_dana_desa) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td></tr>
+                <!-- OTSUS -->
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ OTSUS</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(otsus) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
 
-          <!-- Net Belanja Pegawai -->
-          <tr class="font-semibold"><td class="border p-2 mt-2">Belanja Pegawai</td><td class="border p-2 text-right">{{ formatCurrency(bpVal('employee_spending')) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">Belanja Pegawai dari APBN sebagai Pengurang:</td><td class="border p-2 text-right">{{ formatCurrency(bgEarmarked) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAU - P3K</td><td class="border p-2 text-right">{{ formatCurrency(bg_p3k) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAK Tamsil</td><td class="border p-2 text-right">{{ formatCurrency(bg_tamsil) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAK TPG</td><td class="border p-2 text-right">{{ formatCurrency(bg_tpg) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr><td class="border p-2 pl-6">DAK TKG</td><td class="border p-2 text-right">{{ formatCurrency(bg_tkg) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
-          <tr class="font-bold bg-red-50"><td class="border p-2 pl-4 text-red-900">- Net Belanja Pegawai</td><td class="border p-2 text-right">{{ formatCurrency(netBelanjaPegawai) }}</td><td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td></tr>
+                <!-- Transfer Antar Daerah -->
+                <tr class="font-semibold">
+                  <td class="border p-2 mt-2">Pendapatan Transfer Antar Daerah</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bpVal('inter_regional_transfer_revenue')) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(tadEarmarked) }} </td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">10% dari Pendapatan Bagi Hasil PKB</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(tad_pkb_10) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 10% dari Pendapatan Bagi Hasil
+                    PKB</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">50% dari Pendapatan Bagi Hasil Pajak Rokok</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(tad_rokok_50) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota; Minimal 50% dari Pendapatan Bagi Hasil
+                    Pajak Rokok</td>
+                </tr>
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ Pendapatan Transfer Antar Daerah Non Earmarked</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(tadNonEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td>
+                </tr>
 
-          <!-- Total Pembilang -->
-          <tr class="bg-gray-200 font-bold text-lg"><td class="border p-2 pl-2">Pembilang DSCR</td><td class="border p-2 text-right">{{ formatCurrency(pembilangDscr) }}</td><td class="border p-2 text-xs italic text-gray-500 font-normal">Kab/Kota/Provinsi</td></tr>
+                <!-- Lain-lain -->
+                <tr class="font-semibold">
+                  <td class="border p-2 mt-2">Lain-Lain Pendapatan Daerah yang Sah</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bpVal('other_revenue')) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Unsur Earmarked sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(llEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Hibah Pemerintah Pusat</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(ll_hibah) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Pendapatan Dana Kapitasi JKN</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(ll_jkn) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-blue-50">
+                  <td class="border p-2 pl-4 text-blue-900">+ Lain-Lain Pendapatan yang Sah Non Earmarked</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(llNonEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
 
-          <!-- Penyebut DSCR Calculation -->
-          <tr><td colspan="3" class="border p-2 border-b-0 h-4"></td></tr>
-          <tr class="font-semibold"><td class="border p-2 italic text-gray-600">Pinjaman Baru:</td><td class="border p-2"></td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">Rata-rata Pengembalian Pokok Pinjaman</td><td class="border p-2 text-right">{{ formatCurrency(pb_pokok) }}</td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">Rata-rata Pembayaran Bunga</td><td class="border p-2 text-right">{{ formatCurrency(pb_bunga) }}</td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">Rata-rata Pembayaran Biaya</td><td class="border p-2 text-right">{{ formatCurrency(pb_biaya) }}</td><td class="border p-2"></td></tr>
+                <!-- Pengurangs -->
+                <tr class="font-bold bg-red-50">
+                  <td class="border p-2 pl-4 text-red-900">- Belanja Bagi Hasil</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pengurang_bagi_hasil) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-red-50">
+                  <td class="border p-2 pl-4 text-red-900">- Belanja Jasa Ketersediaan Layanan (Availability Payment)
+                  </td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pengurang_jasa_layanan) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-red-50">
+                  <td class="border p-2 pl-4 text-red-900">- Alokasi Dana Desa</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pengurang_dana_desa) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota</td>
+                </tr>
+
+                <!-- Net Belanja Pegawai -->
+                <tr class="font-semibold">
+                  <td class="border p-2 mt-2">Belanja Pegawai</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bpVal('employee_spending')) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Belanja Pegawai dari APBN sebagai Pengurang:</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bgEarmarked) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAU - P3K</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bg_p3k) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAK Tamsil</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bg_tamsil) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAK TPG</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bg_tpg) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">DAK TKG</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(bg_tkg) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+                <tr class="font-bold bg-red-50">
+                  <td class="border p-2 pl-4 text-red-900">- Net Belanja Pegawai</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(netBelanjaPegawai) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500">Kab/Kota/Provinsi</td>
+                </tr>
+
+                <!-- Total Pembilang -->
+                <tr class="bg-gray-200 font-bold text-lg">
+                  <td class="border p-2 pl-2">Pembilang DSCR</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pembilangDscr) }}</td>
+                  <td class="border p-2 text-xs italic text-gray-500 font-normal">Kab/Kota/Provinsi</td>
+                </tr>
+
+                <!-- Penyebut DSCR Calculation -->
+                <tr>
+                  <td colspan="3" class="border p-2 border-b-0 h-4"></td>
+                </tr>
+                <tr class="font-semibold">
+                  <td class="border p-2 italic text-gray-600">Pinjaman Baru:</td>
+                  <td class="border p-2"></td>
+                  <td class="border p-2">
+                    <div class="flex justify-end mb-6">
+                      <Link :href="`/assessment-details/${assessment.id}/debt-service`">
+                      <Button type="button" class="bg-blue-600 hover:bg-blue-700 text-white">
+                        Buat Pinjaman Baru
+                      </Button>
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Rata-rata Pengembalian Pokok Pinjaman</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pb_pokok) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Rata-rata Pembayaran Bunga</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pb_bunga) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Rata-rata Pembayaran Biaya</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(pb_biaya) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+
+                <tr class="font-semibold">
+                  <td class="border p-2 italic text-gray-600">Pinjaman Eksisting:</td>
+                  <td class="border p-2"></td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr>
+                  <td class="border p-2 pl-6">Rata-rata Pokok+Bunga ke PT SMI</td>
+                  <td class="border p-2 text-right">
+                    <Input type="number" v-model="form.ds_exist" class="w-full text-right" />
+                  </td>
+                  <td class="border p-2"></td>
+                </tr>
+                <tr class="bg-gray-200 font-bold text-lg">
+                  <td class="border p-2 pl-2">Penyebut DSCR</td>
+                  <td class="border p-2 text-right">{{ formatCurrency(penyebutDscr) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+
+                <!-- Final DSCR -->
+                <tr>
+                  <td colspan="3" class="border p-2 border-b-0 h-4"></td>
+                </tr>
+                <tr class="bg-teal-100 font-bold text-lg">
+                  <td class="border p-2 pl-2">DSCR</td>
+                  <td class="border p-2 text-right">{{ dscrRatio.toFixed(2) }}</td>
+                  <td class="border p-2"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           
-          <tr class="font-semibold"><td class="border p-2 italic text-gray-600">Pinjaman Eksisting:</td><td class="border p-2"></td><td class="border p-2"></td></tr>
-          <tr><td class="border p-2 pl-6">Rata-rata Pokok+Bunga ke PT SMI</td><td class="border p-2 text-right">{{ formatCurrency(pe_smi) }}</td><td class="border p-2"></td></tr>
-          <tr class="bg-gray-200 font-bold text-lg"><td class="border p-2 pl-2">Penyebut DSCR</td><td class="border p-2 text-right">{{ formatCurrency(penyebutDscr) }}</td><td class="border p-2"></td></tr>
-          
-          <!-- Final DSCR -->
-          <tr><td colspan="3" class="border p-2 border-b-0 h-4"></td></tr>
-          <tr class="bg-teal-100 font-bold text-lg"><td class="border p-2 pl-2">DSCR</td><td class="border p-2 text-right">{{ dscrRatio.toFixed(2) }}</td><td class="border p-2"></td></tr>
-        </tbody>
-      </table>
-    </div>
+          <!-- Summary Box -->
+          <div class="border shadow p-0 mb-6 bg-white overflow-hidden rounded">
+            <table class="w-full text-sm">
+              <tbody>
+                <tr>
+                  <td class="border-b p-2 font-medium w-[60%]">Pendapatan yang Tidak ditentukan Penggunaannya</td>
+                  <td class="border-b p-2 border-l text-right">{{ formatCurrency(pendapatanTidakDitentukanPenggunaan) }}
+                  </td>
+                  <td class="border-b p-2 border-l w-1/4"></td>
+                </tr>
+                <tr>
+                  <td class="border-b p-2 font-medium">Jumlah Maksimal Pinjaman (75%)</td>
+                  <td class="border-b p-2 border-l text-right">{{ formatCurrency(maxPinjaman75) }}</td>
+                  <td class="border-b p-2 border-l"></td>
+                </tr>
+                <tr>
+                  <td class="border-b p-2 font-medium">Pinjaman yang akan ditarik</td>
+                  <td class="border-b p-2 border-l text-right">{{ formatCurrency(pinjamanDitarik) }}</td>
+                  <td class="border-b p-2 border-l"></td>
+                </tr>
+                <tr>
+                  <td class="border-b p-2 font-medium">Outstanding Pinjaman Eksisting dari LKB dan LKBB lainnya</td>
+                  <td class="border-b p-2 border-l text-right">
+                    <Input type="number" v-model="form.outstanding_lainnya" class="w-full text-right" />
+                  </td>
+                  <td class="border-b p-2 border-l text-xs italic">Jika ada</td>
+                </tr>
+                <tr>
+                  <td class="border-b p-2 font-medium">Outstanding Pinjaman Eksisting ke PT SMI</td>
+                  <td class="border-b p-2 border-l text-right">
+                    <Input type="number" v-model="form.outstanding_smi" class="w-full text-right" />
+                  </td>
+                  <td class="border-b p-2 border-l"></td>
+                </tr>
+                <tr>
+                  <td class="border-b p-2 font-medium">Jumlah pinjaman yang akan ditarik + Sisa Pinjaman</td>
+                  <td class="border-b p-2 border-l text-right">{{ formatCurrency(totalPinjaman) }}</td>
+                  <td class="border-b p-2 border-l"></td>
+                </tr>
+                <tr class="bg-gray-100 font-bold">
+                  <td class="border-b p-2">% Jumlah Pinjaman yang akan ditarik + Sisa Pinjaman thd Pendapatan yang tidak
+                    ditentukan Penggunaannya</td>
+                  <td class="border-b p-2 border-l text-right">{{ pctTotalTerhadapPendapatan.toFixed(0) }}%</td>
+                  <td class="border-b p-2 border-l bg-green-200"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-    <!-- Summary Box -->
-    <div class="border shadow p-0 mb-6 bg-white overflow-hidden rounded">
-      <table class="w-full text-sm">
-        <tbody>
-          <tr><td class="border-b p-2 font-medium w-[60%]">Pendapatan yang Tidak ditentukan Penggunaannya</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(pendapatanTidakDitentukanPenggunaan) }}</td><td class="border-b p-2 border-l w-1/4"></td></tr>
-          <tr><td class="border-b p-2 font-medium">Jumlah Maksimal Pinjaman (75%)</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(maxPinjaman75) }}</td><td class="border-b p-2 border-l"></td></tr>
-          <tr><td class="border-b p-2 font-medium">Pinjaman yang akan ditarik</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(pinjamanDitarik) }}</td><td class="border-b p-2 border-l"></td></tr>
-          <tr><td class="border-b p-2 font-medium">Outstanding Pinjaman Eksisting dari LKB dan LKBB lainnya</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(outstandingLainnya) }}</td><td class="border-b p-2 border-l text-xs italic">Jika ada</td></tr>
-          <tr><td class="border-b p-2 font-medium">Outstanding Pinjaman Eksisting ke PT SMI</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(outstandingSmi) }}</td><td class="border-b p-2 border-l"></td></tr>
-          <tr><td class="border-b p-2 font-medium">Jumlah pinjaman yang akan ditarik + Sisa Pinjaman</td><td class="border-b p-2 border-l text-right">{{ formatCurrency(totalPinjaman) }}</td><td class="border-b p-2 border-l"></td></tr>
-          <tr class="bg-gray-100 font-bold"><td class="border-b p-2">% Jumlah Pinjaman yang akan ditarik + Sisa Pinjaman thd Pendapatan yang tidak ditentukan Penggunaannya</td><td class="border-b p-2 border-l text-right">{{ pctTotalTerhadapPendapatan.toFixed(0) }}%</td><td class="border-b p-2 border-l bg-green-200"></td></tr>
-        </tbody>
-      </table>
-    </div>
+          <!-- Kesimpulan Input Section -->
+          <form @submit.prevent="submit" class="mt-8 border-t pt-6">
+            <h2 class="text-lg font-bold mb-4 bg-teal-600 text-white px-3 py-1.5 inline-block rounded">Kesimpulan:</h2>
 
-    <!-- Kesimpulan Input Section -->
-    <form @submit.prevent="submit" class="mt-8 border-t pt-6">
-      <h2 class="text-lg font-bold mb-4 bg-teal-600 text-white px-3 py-1.5 inline-block rounded">Kesimpulan:</h2>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="block font-bold mb-2">Apa saja yang sudah baik dalam perhitungan DSCR dan kemampuan pemda untuk melakukan pinjaman?</label>
-          <Textarea v-model="form.advantage" rows="4" class="bg-orange-100 border-orange-300 w-full" placeholder="Masukkan poin-poin yang sudah baik..." />
-        </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block font-bold mb-2">Apa saja yang sudah baik dalam perhitungan DSCR dan kemampuan pemda
+                  untuk melakukan pinjaman?</label>
+                <Textarea v-model="form.advantage" rows="4" class="bg-orange-100 border-orange-300 w-full"
+                  placeholder="Masukkan poin-poin yang sudah baik..." />
+              </div>
 
-        <div>
-          <label class="block font-bold mb-2">Apa saja yang masih menjadi tantangan serta membutuhkan perbaikan?</label>
-          <Textarea v-model="form.challenge" rows="4" class="bg-orange-100 border-orange-300 w-full" placeholder="Masukkan tantangan yang dihadapi..." />
+              <div>
+                <label class="block font-bold mb-2">Apa saja yang masih menjadi tantangan serta membutuhkan
+                  perbaikan?</label>
+                <Textarea v-model="form.challenge" rows="4" class="bg-orange-100 border-orange-300 w-full"
+                  placeholder="Masukkan tantangan yang dihadapi..." />
+              </div>
+            </div>
+
+            <div
+              class="px-6 py-4 flex justify-between items-center bg-gray-50 border-t border-gray-200 mt-8 -mx-6 -mb-6">
+              <Link href="/assessments">
+                <Button type="button" variant="outline" class="flex items-center gap-2">
+                  <ChevronLeft :size="16" /> Back
+                </Button>
+              </Link>
+              <div v-if="can('create-assessments')">
+                <Button type="submit" :disabled="form.processing"
+                  class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
+                  <Save :size="16" /> Simpan dan Lanjutkan
+                </Button>
+              </div>
+            </div>
+          </form>
+
         </div>
       </div>
-
-      <div class="px-6 py-4 flex justify-between items-center bg-gray-50 border-t border-gray-200 mt-8 -mx-6 -mb-6">
-        <Link href="/assessments">
-          <Button type="button" variant="outline" class="flex items-center gap-2">
-            <ChevronLeft :size="16" /> Back
-          </Button>
-        </Link>
-        <div v-if="can('create-assessments')">
-          <Button type="submit" :disabled="form.processing" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
-            <Save :size="16" /> Simpan Kesimpulan
-          </Button>
-        </div>
-      </div>
-    </form>
-
     </div>
   </div>
-</div>
 </template>

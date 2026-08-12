@@ -70,16 +70,32 @@ class IndicativeRatingController extends Controller
         $syaratMinimum = ($wdpCount >= 3 || $wtpCount >= 3) ? 'Memenuhi syarat minimum' : 'Tidak memenuhi syarat minimum';
 
         $ratingResult = $quantService->calculate(
-            $skorPerkapita, $katKonsentrasi, $pengangguran, $ipm,
-            $skorPadPendapatan, $katVolatilPad, $operasiPendapatan,
-            $skorModalBelanja, $skorPegawaiBelanja, $padTigaTahun,
-            $skorUtangPendapatan, $skorUtangPdrb, $skorDscr, $skorDsPendapatan,
-            $katKapasitasFiskal, $govLevel, $syaratMinimum, $wtpCount
+            $skorPerkapita,
+            $katKonsentrasi,
+            $pengangguran,
+            $ipm,
+            $skorPadPendapatan,
+            $katVolatilPad,
+            $operasiPendapatan,
+            $skorModalBelanja,
+            $skorPegawaiBelanja,
+            $padTigaTahun,
+            $skorUtangPendapatan,
+            $skorUtangPdrb,
+            $skorDscr,
+            $skorDsPendapatan,
+            $katKapasitasFiskal,
+            $govLevel,
+            $syaratMinimum,
+            $wtpCount
         );
 
         $ratingLabels = [
-            1 => 'Sangat Memadai', 2 => 'Sangat Memadai',
-            3 => 'Memadai', 4 => 'Memadai', 5 => 'Tidak Memadai',
+            1 => 'Sangat Memadai',
+            2 => 'Sangat Memadai',
+            3 => 'Memadai',
+            4 => 'Memadai',
+            5 => 'Tidak Memadai',
         ];
         $indicativeRating = $ratingLabels[$ratingResult['peringkat']] ?? 'Tidak Diketahui';
 
@@ -127,6 +143,6 @@ class IndicativeRatingController extends Controller
             $request->selfAssessment
         );
 
-        return redirect()->back()->with('message', 'Indicative Rating updated successfully!');
+        return redirect()->route("assessment-details.action-plan.edit", $assessment->id)->with("message", "Rating berhasil diperbarui!");
     }
 }

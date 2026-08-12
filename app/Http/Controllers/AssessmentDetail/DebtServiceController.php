@@ -90,6 +90,6 @@ class DebtServiceController extends Controller
             ]
         );
 
-        return redirect()->back()->with('message', 'Debt Service updated successfully!');
+        return redirect()->route("assessment-details.dscr.edit", $assessment->id)->with("message", "Hutang berhasil diisi!");
     }
 }

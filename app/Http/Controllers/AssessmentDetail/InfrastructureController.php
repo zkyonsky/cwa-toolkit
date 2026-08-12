@@ -66,8 +66,8 @@ class InfrastructureController extends Controller
     public function update(Request $request, Assessment $assessment)
     {
         $request->validate([
-            'services' => 'required|array',
-            'priorities' => 'required|array',
+            'services'   => 'required|array',
+            'priorities' => 'present|array',
             'conclusion' => 'required|array',
             'indicators' => 'nullable|array',
         ]);
@@ -124,6 +124,6 @@ class InfrastructureController extends Controller
             }
         }
 
-        return redirect()->back()->with('message', 'Infrastructure assessment updated successfully!');
+        return redirect()->route("assessment-details.budget-real.edit", $assessment->id)->with("message", "Infrastruktur berhasil disimpan!");
     }
 }

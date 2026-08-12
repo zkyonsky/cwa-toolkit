@@ -19,7 +19,7 @@ class BudgetRealController extends Controller
 
         $assessmentYear = date('Y', strtotime($assessment->date));
         $latestYear = $gov->budget_real()->max('year') ?? ($assessmentYear - 1);
-        $years = range($latestYear - 4, $latestYear);
+        $years = range($latestYear - 2, $latestYear);
 
         $budgetReals = $gov->budget_real()
             ->whereIn('year', $years)
@@ -94,6 +94,24 @@ class BudgetRealController extends Controller
             );
         }
 
-        return redirect()->back()->with('message', 'Budget Real data updated successfully!');
+        return redirect()->route("assessment-details.financial-condition.edit", $assessment->id)->with("message", "Realisasi APBD berhasil diperbarui!");
+    }
+
+    public function destroy(Request $request, Assessment $assessment)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+        ]);
+
+        $assessment->load('assessee.gov');
+        $gov = $assessment->assessee->gov;
+
+        if (!$gov) {
+            return redirect()->back()->with('error', 'Gov not found');
+        }
+
+        $gov->budget_real()->where('year', $request->year)->delete();
+
+        return redirect()->back()->with('message', "Data tahun {$request->year} berhasil dihapus.");
     }
 }

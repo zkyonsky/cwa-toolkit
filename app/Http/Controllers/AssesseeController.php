@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Assessee;
 use App\Models\Gov;
+use App\Models\User;
 
 class AssesseeController extends Controller
 {
@@ -21,7 +22,7 @@ class AssesseeController extends Controller
     {
         return Inertia::render("assessees/Create", [
             "govs" => Gov::select('id', 'name', 'level')->get(),
-            "user" => Auth::user()->only(['id', 'name'])
+            "users" => User::select('id', 'name')->get()
         ]);
     }
 
@@ -29,12 +30,12 @@ class AssesseeController extends Controller
     {
         $data = $request->validate([
             "gov_id" => "required|exists:govs,id",
+            "user_id" => "required|exists:users,id",
             "position" => "required|string",
             "contact" => "required|string",
             "address" => "required|string",
         ]);
 
-        $data['user_id'] = $request->user()->id;
         Assessee::create($data);
 
         return redirect()->route("assessees.index")->with("message", "Assessee created successfully!");
@@ -45,7 +46,7 @@ class AssesseeController extends Controller
         return Inertia::render("assessees/Edit", [
             "assessee" => $assessee,
             "govs" => Gov::select('id', 'name', 'level')->get(),
-            "user" => $assessee->user
+            "users" => User::select('id', 'name')->get()
         ]);
     }
 
@@ -53,6 +54,7 @@ class AssesseeController extends Controller
     {
         $data = $request->validate([
             "gov_id" => "required|exists:govs,id",
+            "user_id" => "required|exists:users,id",
             "position" => "required|string",
             "contact" => "required|string",
             "address" => "required|string",

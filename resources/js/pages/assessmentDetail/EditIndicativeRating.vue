@@ -99,7 +99,7 @@ const formatNumber = (val: number) => {
     </AlertDescription>
   </Alert>
 
-  <AssessmentStepper :assessment-id="assessment.id" :current-step="8" />
+  <AssessmentStepper :assessment-id="assessment.id" :current-step="7" />
 
   <div class="p-6 bg-gray-50 min-h-screen font-sans text-sm">
     <div class="max-w-[1000px] mx-auto">
@@ -256,7 +256,7 @@ const formatNumber = (val: number) => {
         </Link>
         <div v-if="can('create-assessments')">
           <Button type="submit" :disabled="form.processing" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
-            <Save :size="16" /> Simpan Indikasi Rating
+            <Save :size="16" /> Simpan dan Lanjutkan
           </Button>
         </div>
       </div>

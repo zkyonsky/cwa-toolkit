@@ -12,13 +12,43 @@ class ActionPlanController extends Controller
 {
     public function edit(Assessment $assessment)
     {
-        $assessment->load(['actionPlans', 'assessee.gov']);
+        $assessment->load(['actionPlans', 'assessee.gov', 'infrasConclusion', 'debtService', 'selfAssessment']);
+
+        $actionPlans = $assessment->actionPlans;
+
+        if ($actionPlans->isEmpty()) {
+            $defaults = collect();
+
+            if ($assessment->infrasConclusion && ($assessment->infrasConclusion->advantage || $assessment->infrasConclusion->challenge)) {
+                $defaults->push([
+                    'conclusion' => $assessment->infrasConclusion->advantage ?? '',
+                    'challenge' => $assessment->infrasConclusion->challenge ?? '',
+                    'action_plan' => '',
+                ]);
+            }
+            if ($assessment->debtService && ($assessment->debtService->advantage || $assessment->debtService->challenge)) {
+                $defaults->push([
+                    'conclusion' => $assessment->debtService->advantage ?? '',
+                    'challenge' => $assessment->debtService->challenge ?? '',
+                    'action_plan' => '',
+                ]);
+            }
+            if ($assessment->selfAssessment && ($assessment->selfAssessment->advantage || $assessment->selfAssessment->challenge)) {
+                $defaults->push([
+                    'conclusion' => $assessment->selfAssessment->advantage ?? '',
+                    'challenge' => $assessment->selfAssessment->challenge ?? '',
+                    'action_plan' => '',
+                ]);
+            }
+
+            $actionPlans = $defaults;
+        }
 
         $challenges = Challenge::with(['challengeActions', 'category'])->get();
 
         return Inertia::render('assessmentDetail/EditActionPlan', [
             'assessment' => $assessment,
-            'actionPlans' => $assessment->actionPlans,
+            'actionPlans' => $actionPlans,
             'challenges' => $challenges
         ]);
     }
@@ -39,6 +69,6 @@ class ActionPlanController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('message', 'Action Plan updated successfully!');
+        return redirect()->route("assessment-details.report.show", $assessment->id)->with("message", "Form Assessment berhasil diselesaikan, silakan lihat Laporan!");
     }
 }

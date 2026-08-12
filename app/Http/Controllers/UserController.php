@@ -160,8 +160,12 @@ class UserController extends Controller
                 continue;
             }
 
-            $data = array_combine($header, $row);
-
+            $data = [];
+            foreach ($header as $index => $key) {
+                if (trim($key) !== '') {
+                    $data[trim($key)] = isset($row[$index]) ? $row[$index] : null;
+                }
+            }
             // Validate required fields
             if (empty($data['name']) || empty($data['email']) || empty($data['password']) || empty($data['role'])) {
                 $skipped++;
@@ -195,15 +199,19 @@ class UserController extends Controller
 
             // Create assessee if applicable
             $isAssessee = isset($data['assessee']) && strtolower(trim($data['assessee'])) === 'yes';
-            if ($isAssessee && !empty($data['gov_id'])) {
-                $govId = trim($data['gov_id']);
-                if (Gov::where('id', $govId)->exists()) {
-                    Assessee::create([
-                        'user_id' => $user->id,
-                        'gov_id' => $govId,
-                    ]);
+            if ($isAssessee) {
+                if (!empty($data['gov_id'])) {
+                    $govId = trim($data['gov_id']);
+                    if (Gov::where('id', $govId)->exists()) {
+                        Assessee::create([
+                            'user_id' => $user->id,
+                            'gov_id' => $govId,
+                        ]);
+                    } else {
+                        $errors[] = "Row {$rowNumber}: User created but Gov ID '{$govId}' does not exist, assessee not assigned.";
+                    }
                 } else {
-                    $errors[] = "Row {$rowNumber}: User created but Gov ID '{$govId}' does not exist, assessee not assigned.";
+                    $errors[] = "Row {$rowNumber}: User created but Gov ID is missing, assessee not assigned.";
                 }
             }
 
@@ -232,6 +240,10 @@ class UserController extends Controller
     public function downloadTemplate()
     {
         $filePath = public_path('templates/user_import_template.csv');
-        return response()->download($filePath, 'user_import_template.csv');
+        return response()->download($filePath, 'user_import_template.csv', [
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
     }
 }

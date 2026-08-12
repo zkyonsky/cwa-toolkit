@@ -20,7 +20,7 @@ defineOptions({
 });
 const props = defineProps<{
     govs: Array<{ id: number, name: string, level: string }>,
-    user: { id: number, name: string }
+    users: Array<{ id: number, name: string }>
 }>();
 
 const govOptions = computed(() => {
@@ -30,8 +30,16 @@ const govOptions = computed(() => {
     }))
 })
 
+const userOptions = computed(() => {
+    return props.users.map(user => ({
+        label: user.name,
+        value: user.id
+    }))
+})
+
 const form = useForm({
     gov_id: '',
+    user_id: '',
     position: '',
     contact: '',
     address: '',
@@ -65,8 +73,14 @@ const submit = () => {
                 <div class="text-small text-red-500" v-if="form.errors.gov_id">{{ form.errors.gov_id }}</div>
             </div>
             <div class="space-y-4 mt-4">
-                <Label for="name">Name</Label>
-                <Input type="text" :model-value="user.name" disabled />
+                <Label for="user_id">Name</Label>
+                <Combobox 
+                    v-model="form.user_id"
+                    :options="userOptions"
+                    placeholder="Select a user..."
+                    search-placeholder="Search by name..."
+                />
+                <div class="text-small text-red-500" v-if="form.errors.user_id">{{ form.errors.user_id }}</div>
             </div>
             <div class="space-y-4 mt-4">
                 <Label for="position">Position</Label>

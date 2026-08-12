@@ -49,10 +49,11 @@ class AssessmentController extends Controller
     {
         $data = $request->validate([
             "assessee_id" => "required|exists:assessees,id",
-            "date" => "required|date",
+            "date"        => "required|date",
+            "info"        => "nullable|string",
         ]);
 
-        Assessment::create($data);
+        Assessment::create(array_merge($data, ['result' => '', 'info' => $data['info'] ?? '']));
 
         return redirect()->route("assessments.index")->with("message", "Assessment created successfully!");
     }
@@ -78,16 +79,20 @@ class AssessmentController extends Controller
 
         $assessment->update([
             "date" => $data["date"],
-            "info" => $data["info"],
+            "info" => $data["info"] ?? null,
         ]);
 
-        // Update Assessee record
-        $assessment->assessee->update([
-            'position' => $data['position'],
-            'contact' => $data['contact'],
-        ]);
+        // Update Assessee record only if position/contact were provided
+        $assesseeUpdate = array_filter([
+            'position' => $data['position'] ?? null,
+            'contact'  => $data['contact']  ?? null,
+        ], fn($v) => !is_null($v));
 
-        return redirect()->route("assessments.index")->with("message", "Assessment updated successfully!");
+        if (!empty($assesseeUpdate)) {
+            $assessment->assessee->update($assesseeUpdate);
+        }
+
+        return redirect()->route("assessment-details.infrastructure.edit", $assessment->id)->with("message", "Assessment updated successfully!");
     }
 
     public function destroy(Assessment $assessment)

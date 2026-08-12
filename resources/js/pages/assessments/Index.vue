@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Database, Trash, Plus, Rocket, Building, Banknote, LineChart, CreditCard, Calculator, BarChart, Pencil, Star, ClipboardList } from '@lucide/vue';
+import { Database, Trash, Plus, Rocket, Building, Banknote, LineChart, CreditCard, Calculator, BarChart, Pencil, Star, ClipboardList, ListChecks } from '@lucide/vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Table,
@@ -191,47 +191,48 @@ const handleDelete = (id: number) => {
               class="flex-1">
               <Button variant="outline"
                 class="w-full justify-start text-xs bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-700">
-                <Building class="mr-1 size-3" /> Infrastructure
+                <Building class="mr-1 size-3" /> Infrastruktur
               </Button>
             </Link>
-          </div>
-          <div class="flex flex-wrap gap-2">
             <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/budget-real`"
               class="flex-1">
               <Button variant="outline"
                 class="w-full justify-start text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
-                <Banknote class="mr-1 size-3" /> Budget
+                <Banknote class="mr-1 size-3" /> Realisasi APBD
+              </Button>
+            </Link>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/financial-condition`"
+              class="flex-1">
+              <Button variant="outline"
+                class="w-full justify-start text-xs bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700">
+                <BarChart class="mr-1 size-3" /> Kondisi Keuangan
               </Button>
             </Link>
             <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/economy-condition`"
               class="flex-1">
               <Button variant="outline"
                 class="w-full justify-start text-xs bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700">
-                <LineChart class="mr-1 size-3" /> Economy
-              </Button>
-            </Link>
-            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/financial-condition`"
-              class="flex-1">
-              <Button variant="outline"
-                class="w-full justify-start text-xs bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700">
-                <BarChart class="mr-1 size-3" /> Financial
-              </Button>
-            </Link>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/debt-service`"
-              class="flex-1">
-              <Button variant="outline"
-                class="w-full justify-start text-xs bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700">
-                <CreditCard class="mr-1 size-3" /> Debt
+                <LineChart class="mr-1 size-3" /> Kondisi Ekonomi
               </Button>
             </Link>
             <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/dscr`" class="flex-1">
               <Button variant="outline"
                 class="w-full justify-start text-xs bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700">
-                <Calculator class="mr-1 size-3" /> DSCR Conclusion
+                <Calculator class="mr-1 size-3" /> DSCR
               </Button>
             </Link>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <!-- <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/debt-service`"
+              class="flex-1">
+              <Button variant="outline"
+                class="w-full justify-start text-xs bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700">
+                <CreditCard class="mr-1 size-3" /> Debt Service
+              </Button>
+            </Link> -->
+            
             <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/indicative-rating`"
               class="flex-1">
               <Button variant="outline"
@@ -243,7 +244,14 @@ const handleDelete = (id: number) => {
               class="flex-1">
               <Button variant="outline"
                 class="w-full justify-start text-xs bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700">
-                <ClipboardList class="mr-1 size-3" /> Action Plan
+                <ClipboardList class="mr-1 size-3" /> Rencana Aksi
+              </Button>
+            </Link>
+            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/report`"
+              class="flex-1">
+              <Button variant="outline"
+                class="w-full justify-start text-xs bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-700">
+                <ListChecks class="mr-1 size-3" /> Laporan
               </Button>
             </Link>
           </div>

@@ -136,33 +136,22 @@ const formatPercent = (value: number) => {
     </AlertDescription>
   </Alert>
 
-  <AssessmentStepper :assessment-id="assessment.id" :current-step="5" />
+  <AssessmentStepper :assessment-id="assessment.id" :current-step="4" />
 
   <div class="p-6 bg-gray-50 min-h-screen font-sans">
     <div class="max-w-[1400px] mx-auto">
       <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-        
+
         <div class="bg-teal-600 text-white py-4 text-center shadow-inner">
           <div class="flex items-center justify-center gap-2">
-            <h1 class="text-2xl font-bold text-center">3b_Kondisi Ekonomi Daerah</h1>
+            <h1 class="text-2xl font-bold text-center">Kondisi Keuangan Daerah</h1>
             <HoverCard>
               <HoverCardTrigger>
                 <HelpCircle :size="20" class="text-white" />
               </HoverCardTrigger>
               <HoverCardContent>
-                Pada Asessment Ekonomi dan Keuangan, Saudara diminta untuk memasukan data keuangan
-                Pemerintah Daerah
-                (Pemda) berdasarkan laporan keuangan terakhir (audited) dan juga memperhatikan data ekonomi
-                seperti
-                tingkat kemiskinan, tingkat pengangguran, dan Indeks Pembangunan Manusia (IPM). Pada bagian
-                ini juga
-                diberikan data pengelolaan keuangan seperti kapasitas fiskal, kemandirian anggaran,
-                kemampuan
-                memperoleh pendapatan, efektifitas belanja dan likuiditas yang pada akhirnya akan
-                menghasilkan
-                indikasi rating diakhiri dengan kesimpulan atas asessment ekonomi dan keuangan, tantangan
-                dan
-                rencana aksi sebagai hasil akhir tahap ini.
+                Pada Asessment Kondisi Keuangan, Saudara diminta untuk menentukan kategori Kapasitas Fiskal Daerah,
+                Menyesuaikan Volatilitas pertumbuhan PAD, dan Rata-rata realisasi PAD 3 tahun terakhir
               </HoverCardContent>
             </HoverCard>
           </div>
@@ -170,233 +159,238 @@ const formatPercent = (value: number) => {
         </div>
 
         <form @submit.prevent="submit" class="space-y-6 p-6 text-sm">
-      <div class="grid grid-cols-12 gap-y-1 mb-8">
-        <div class="col-span-3 font-bold">Pemda</div>
-        <div class="col-span-4 border px-2 py-1 bg-orange-100/50 text-orange-800">{{ govName }}</div>
-        <div class="col-span-5"></div>
+          <div class="grid grid-cols-12 gap-y-1 mb-8">
+            <div class="col-span-3 font-bold">Pemda</div>
+            <div class="col-span-4 border px-2 py-1 bg-orange-100/50 text-orange-800">{{ govName }}</div>
+            <div class="col-span-5"></div>
 
-        <div class="col-span-3 font-bold">Tingkat Pemerintahan</div>
-        <div class="col-span-4 border px-2 py-1 bg-orange-100/50 text-orange-800">{{ govLevel }}</div>
-        <div class="col-span-5"></div>
+            <div class="col-span-3 font-bold">Tingkat Pemerintahan</div>
+            <div class="col-span-4 border px-2 py-1 bg-orange-100/50 text-orange-800">{{ govLevel }}</div>
+            <div class="col-span-5"></div>
 
-        <div class="col-span-3 font-bold flex items-center">Kapasitas Fiskal</div>
-        <div class="col-span-4 border bg-orange-100/50">
-          <Select v-model="form.fiscal_capacity">
-            <SelectTrigger class="w-full border-none bg-transparent text-orange-800 shadow-none focus:ring-0 h-8">
-              <SelectValue placeholder="Pilih Kapasitas Fiskal" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Sangat Rendah">Sangat Rendah</SelectItem>
-              <SelectItem value="Rendah">Rendah</SelectItem>
-              <SelectItem value="Sedang">Sedang</SelectItem>
-              <SelectItem value="Tinggi">Tinggi</SelectItem>
-              <SelectItem value="Sangat Tinggi">Sangat Tinggi</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div class="col-span-5"></div>
+            <div class="col-span-3 font-bold flex items-center">Kapasitas Fiskal</div>
+            <div class="col-span-4 border bg-orange-100/50">
+              <Select v-model="form.fiscal_capacity">
+                <SelectTrigger class="w-full border-none bg-transparent text-orange-800 shadow-none focus:ring-0 h-8">
+                  <SelectValue placeholder="Pilih Kapasitas Fiskal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Sangat Rendah">Sangat Rendah</SelectItem>
+                  <SelectItem value="Rendah">Rendah</SelectItem>
+                  <SelectItem value="Sedang">Sedang</SelectItem>
+                  <SelectItem value="Tinggi">Tinggi</SelectItem>
+                  <SelectItem value="Sangat Tinggi">Sangat Tinggi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="col-span-5"></div>
 
-        <!-- <div class="col-span-12 mt-4 flex items-center gap-4 bg-gray-50 p-2 border rounded">
-          <div class="flex items-center gap-2">
-            <Filter class="size-4 text-gray-500" />
-            <span class="font-bold">Rentang Tahun</span>
+            <!-- <div class="col-span-12 mt-4 flex items-center gap-4 bg-gray-50 p-2 border rounded">
+                  <div class="flex items-center gap-2">
+                    <Filter class="size-4 text-gray-500" />
+                    <span class="font-bold">Rentang Tahun</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Select v-model="startYear" @update:model-value="handleYearChange">
+                      <SelectTrigger class="w-32 h-8">
+                        <SelectValue placeholder="Dari" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem v-for="y in availableYears" :key="'start' + y" :value="y">{{ y }}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span>s/d</span>
+                    <Select v-model="endYear" @update:model-value="handleYearChange">
+                      <SelectTrigger class="w-32 h-8">
+                        <SelectValue placeholder="Sampai" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem v-for="y in availableYears" :key="'end' + y" :value="y">{{ y }}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p class="text-xs text-gray-500">Data akan diperbarui otomatis saat tahun dipilih.</p>
+                </div> -->
           </div>
-          <div class="flex items-center gap-2">
-            <Select v-model="startYear" @update:model-value="handleYearChange">
-              <SelectTrigger class="w-32 h-8">
-                <SelectValue placeholder="Dari" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="y in availableYears" :key="'start' + y" :value="y">{{ y }}</SelectItem>
-              </SelectContent>
-            </Select>
-            <span>s/d</span>
-            <Select v-model="endYear" @update:model-value="handleYearChange">
-              <SelectTrigger class="w-32 h-8">
-                <SelectValue placeholder="Sampai" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="y in availableYears" :key="'end' + y" :value="y">{{ y }}</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <!-- Main Table Grid -->
+          <div class="border divide-y">
+
+            <!-- Headers -->
+            <div class="grid grid-cols-12 divide-x bg-gray-100 font-bold items-center sticky top-0">
+              <div class="col-span-4 p-2 text-right shadow-sm">Tahun</div>
+              <div class="col-span-2 p-2 text-center" v-for="year in years" :key="year">{{ year }}</div>
+              <div class="col-span-2 p-2">Keterangan / Status</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2 font-bold">Opini BPK atas Laporan Realisasi Anggaran</div>
+              <div class="col-span-2 p-2 text-center text-orange-700 bg-orange-50 font-medium whitespace-pre border-r"
+                v-for="year in years" :key="'bpk' + year">{{ financialData[year]?.bpk_opinion || '-' }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500 bg-gray-50"></div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center bg-gray-50">
+              <div class="col-span-4 p-2 font-bold bg-white">Total Pendapatan</div>
+              <div class="col-span-2 p-2 text-right border-r font-bold bg-white" v-for="year in years"
+                :key="'rev' + year">
+                {{
+                  formatCurrency(financialData[year]?.total_revenue) }}</div>
+              <div class="col-span-2 p-2 bg-white"></div>
+            </div>
+
+            <!-- Kemandirian Anggaran Section -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kemandirian Anggaran</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">PAD</div>
+              <div class="col-span-2 p-2 text-right bg-gray-100 border-r" v-for="year in years" :key="'pad' + year">{{
+                formatCurrency(financialData[year]?.total_pad) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Kemandirian anggaran rendah sekali</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Pertumbuhan PAD</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'padgr' + year">{{
+                formatPercent(financialData[year]?.pad_growth) }}</div>
+              <div class="col-span-2 p-2"></div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio PAD per Pendapatan Total (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'padr' + year">{{
+                formatPercent(financialData[year]?.pad_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah daerah di Indonesia
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Pendapatan Transfer per Pendapatan Total (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'trr' + year">{{
+                formatPercent(financialData[year]?.transfer_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan transfer meningkat</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Pendapatan Lain-lain yang Sah per Pendapatan Total (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'otherr' + year">{{
+                formatPercent(financialData[year]?.other_legit_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan pada transfer menurun</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Volatilitas pertumbuhan PAD (selisih pertumbuhan PAD) (%)</div>
+              <div class="col-span-2 p-1 border-r">
+                <Input type="number" step="0.01" v-model="form.volatil_pad"
+                  class="h-8 border-green-600 bg-green-50 focus-visible:ring-green-600 text-right font-bold" />
+              </div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Pertumbuhan PAD 2 tahun terakhir stabil</div>
+            </div>
+
+            <!-- Kemampuan memperoleh penghasilan -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kemampuan memperoleh penghasilan untuk
+              menutupi
+              belanja</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Surplus/Defisit Operasi per Pendapatan Total (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'opsur' + year">{{
+                formatPercent(financialData[year]?.op_surplus_deficit_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Sedang dibanding pemerintah di Indonesia</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Surplus/Defisit Sebelum Pembiayaan (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'sur' + year">{{
+                formatPercent(financialData[year]?.surplus_deficit_before_fin) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Defisit</div>
+            </div>
+
+            <!-- Efektivitas belanja -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Efektivitas belanja</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Belanja Modal per Total belanja (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'caps' + year">{{
+                formatPercent(financialData[year]?.cap_spending_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang dibanding pemerintah di
+                Indonesia
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio Belanja Pegawai per Total Belanja (%)</div>
+              <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'emps' + year">{{
+                formatPercent(financialData[year]?.emp_spending_ratio) }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah di Indonesia</div>
+            </div>
+
+            <!-- Kualitas penyusunan anggaran -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kualitas penyusunan anggaran</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rata-rata realisasi PAD 3 tahun terakhir (%)</div>
+              <div class="col-span-2 p-1 border-r">
+                <Input type="number" step="0.01" v-model="form.pad_last_three_year"
+                  class="h-8 border-orange-300 bg-orange-100 text-right font-bold" />
+              </div>
+              <div class="col-span-4"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Sesuai anggaran</div>
+            </div>
+
+            <!-- Beban Utang -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Beban Utang</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Total utang</div>
+              <div class="col-span-2 p-1 border-r bg-gray-200/50">
+                <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ form.total_debt ?
+                  formatCurrency(form.total_debt) : '0' }}</div>
+              </div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 bg-gray-50"></div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio total utang per PDRB harga berlaku (%)</div>
+              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ latestPDRB ?
+                formatPercent((form.total_debt / latestPDRB) * 0.0001) : '0.00%' }}</div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Rasio total utang per pendapatan umum (%)</div>
+              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{
+                props.debtService?.unappropiated_revenue ?
+                  formatPercent((form.total_debt / props.debtService.unappropiated_revenue) * 100) : '0.00%' }}</div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
+            </div>
+
+            <!-- Likuiditas -->
+            <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Likuiditas (sepanjang tenor pinjaman)</div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">Debt Service / Pendapatan total (%)</div>
+              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ formatPercent(dsRevenue) }}</div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah</div>
+            </div>
+
+            <div class="grid grid-cols-12 divide-x items-center">
+              <div class="col-span-4 p-2">DSCR</div>
+              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ debtService?.dscr ?
+                debtService.dscr.toFixed(2) + 'x' : '0.00x' }}</div>
+              <div class="col-span-4 bg-gray-50"></div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">>2,5x (Memenuhi)</div>
+            </div>
+
           </div>
-          <p class="text-xs text-gray-500">Data akan diperbarui otomatis saat tahun dipilih.</p>
-        </div> -->
+        </form>
       </div>
 
-      <!-- Main Table Grid -->
-      <div class="border divide-y">
-
-        <!-- Headers -->
-        <div class="grid grid-cols-12 divide-x bg-gray-100 font-bold items-center sticky top-0">
-          <div class="col-span-4 p-2 text-right shadow-sm">Tahun</div>
-          <div class="col-span-2 p-2 text-center" v-for="year in years" :key="year">{{ year }}</div>
-          <div class="col-span-2 p-2">Keterangan / Status</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2 font-bold">Opini BPK atas Laporan Realisasi Anggaran</div>
-          <div class="col-span-2 p-2 text-center text-orange-700 bg-orange-50 font-medium whitespace-pre border-r"
-            v-for="year in years" :key="'bpk' + year">{{ financialData[year]?.bpk_opinion || '-' }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500 bg-gray-50"></div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center bg-gray-50">
-          <div class="col-span-4 p-2 font-bold bg-white">Total Pendapatan</div>
-          <div class="col-span-2 p-2 text-right border-r font-bold bg-white" v-for="year in years" :key="'rev' + year">
-            {{
-              formatCurrency(financialData[year]?.total_revenue) }}</div>
-          <div class="col-span-2 p-2 bg-white"></div>
-        </div>
-
-        <!-- Kemandirian Anggaran Section -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kemandirian Anggaran</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">PAD</div>
-          <div class="col-span-2 p-2 text-right bg-gray-100 border-r" v-for="year in years" :key="'pad' + year">{{
-            formatCurrency(financialData[year]?.total_pad) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Kemandirian anggaran rendah sekali</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Pertumbuhan PAD</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'padgr' + year">{{
-            formatPercent(financialData[year]?.pad_growth) }}</div>
-          <div class="col-span-2 p-2"></div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio PAD per Pendapatan Total (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'padr' + year">{{
-            formatPercent(financialData[year]?.pad_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah daerah di Indonesia</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Pendapatan Transfer per Pendapatan Total (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'trr' + year">{{
-            formatPercent(financialData[year]?.transfer_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan transfer meningkat</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Pendapatan Lain-lain yang Sah per Pendapatan Total (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'otherr' + year">{{
-            formatPercent(financialData[year]?.other_legit_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan pada transfer menurun</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Volatilitas pertumbuhan PAD (selisih pertumbuhan PAD) (%)</div>
-          <div class="col-span-2 p-1 border-r">
-            <Input type="number" step="0.01" v-model="form.volatil_pad"
-              class="h-8 border-green-600 bg-green-50 focus-visible:ring-green-600 text-right font-bold" />
-          </div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Pertumbuhan PAD 2 tahun terakhir stabil</div>
-        </div>
-
-        <!-- Kemampuan memperoleh penghasilan -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kemampuan memperoleh penghasilan untuk menutupi
-          belanja</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Surplus/Defisit Operasi per Pendapatan Total (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'opsur' + year">{{
-            formatPercent(financialData[year]?.op_surplus_deficit_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Sedang dibanding pemerintah di Indonesia</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Surplus/Defisit Sebelum Pembiayaan (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'sur' + year">{{
-            formatPercent(financialData[year]?.surplus_deficit_before_fin) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Defisit</div>
-        </div>
-
-        <!-- Efektivitas belanja -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Efektivitas belanja</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Belanja Modal per Total belanja (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'caps' + year">{{
-            formatPercent(financialData[year]?.cap_spending_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang dibanding pemerintah di Indonesia
-          </div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio Belanja Pegawai per Total Belanja (%)</div>
-          <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'emps' + year">{{
-            formatPercent(financialData[year]?.emp_spending_ratio) }}</div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah di Indonesia</div>
-        </div>
-
-        <!-- Kualitas penyusunan anggaran -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Kualitas penyusunan anggaran</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rata-rata realisasi PAD 3 tahun terakhir (%)</div>
-          <div class="col-span-2 p-1 border-r">
-            <Input type="number" step="0.01" v-model="form.pad_last_three_year"
-              class="h-8 border-orange-300 bg-orange-100 text-right font-bold" />
-          </div>
-          <div class="col-span-4"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Sesuai anggaran</div>
-        </div>
-
-        <!-- Beban Utang -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Beban Utang</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Total utang</div>
-          <div class="col-span-2 p-1 border-r bg-gray-200/50">
-            <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ form.total_debt ?
-              formatCurrency(form.total_debt) : '0' }}</div>
-          </div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 bg-gray-50"></div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio total utang per PDRB harga berlaku (%)</div>
-          <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ latestPDRB ?
-            formatPercent((form.total_debt / latestPDRB) * 0.0001) : '0.00%' }}</div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Rasio total utang per pendapatan umum (%)</div>
-          <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{
-            props.debtService?.unappropiated_revenue ?
-              formatPercent((form.total_debt / props.debtService.unappropiated_revenue) * 100) : '0.00%' }}</div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
-        </div>
-
-        <!-- Likuiditas -->
-        <div class="p-2 font-bold bg-gray-100/50 text-teal-800 border-b">Likuiditas (sepanjang tenor pinjaman)</div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">Debt Service / Pendapatan total (%)</div>
-          <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ formatPercent(dsRevenue) }}</div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah</div>
-        </div>
-
-        <div class="grid grid-cols-12 divide-x items-center">
-          <div class="col-span-4 p-2">DSCR</div>
-          <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ debtService?.dscr ?
-            debtService.dscr.toFixed(2) + 'x' : '0.00x' }}</div>
-          <div class="col-span-4 bg-gray-50"></div>
-          <div class="col-span-2 p-2 text-xs italic text-gray-500">>2,5x (Memenuhi)</div>
-        </div>
-
-      </div>
-      </div>
-      
       <div class="px-6 py-4 flex justify-between items-center bg-gray-50 border-t border-gray-200 mt-6 -mx-6 -mb-6">
         <Link href="/assessments">
           <Button type="button" variant="outline" class="flex items-center gap-2">
@@ -404,13 +398,13 @@ const formatPercent = (value: number) => {
           </Button>
         </Link>
         <div v-if="can('create-assessments')">
-          <Button type="submit" :disabled="form.processing" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
-            <Save :size="16" /> Save Changes
+          <Button @click="submit" :disabled="form.processing"
+            class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
+            <Save :size="16" /> Simpan dan Lanjutkan
           </Button>
         </div>
       </div>
 
-    </form>
+    </div>
   </div>
-</div>
 </template>

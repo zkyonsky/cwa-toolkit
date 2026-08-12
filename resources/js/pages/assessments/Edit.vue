@@ -142,8 +142,7 @@ const isUser = computed(() => {
 
                         <!-- Nama -->
                         <tr>
-                            <td class="w-1/4 border border-gray-300 bg-teal-500 text-white font-semibold px-2 py-1">Nama
-                                Asesi</td>
+                            <td class="w-1/4 border border-gray-300 bg-teal-500 text-white font-semibold px-2 py-1">Nama</td>
                             <td colspan="3" class="border border-gray-300 bg-gray-50 px-2 py-1">
                                 {{ props.assessee.user.name }}
                             </td>
@@ -285,7 +284,7 @@ const isUser = computed(() => {
                     <div v-if="can('create-assessments')">
                         <Button @click="submit" :disabled="form.processing"
                             class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
-                            <Save :size="16" /> Save Changes
+                            <Save :size="16" /> Simpan dan Lanjutkan
                         </Button>
                     </div>
                 </div>

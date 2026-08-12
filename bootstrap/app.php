@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         commands: __DIR__ . '/../routes/console.php',
+        then: function () {
+            // Temporary setup route for shared hosting (delete routes/setup.php after use)
+            if (file_exists($setup = base_path('routes/setup.php'))) {
+                require $setup;
+            }
+        },
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {

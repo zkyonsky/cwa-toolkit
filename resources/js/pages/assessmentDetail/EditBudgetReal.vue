@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Save, ArrowLeft, Plus, HelpCircle } from '@lucide/vue';
+import { Save, ArrowLeft, Plus, HelpCircle, Trash } from '@lucide/vue';
 import AssessmentStepper from '@/components/AssessmentStepper.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
@@ -39,6 +39,13 @@ const form = useForm({
 
 const yearsList = ref([...props.years].sort((a, b) => a - b));
 const isModalOpen = ref(false);
+const isDeleteDialogOpen = ref(false);
+const yearToDelete = ref<number | null>(null);
+
+const displayedYears = computed(() => {
+    const sorted = [...yearsList.value].sort((a, b) => b - a);
+    return sorted.slice(0, 3).sort((a, b) => a - b);
+});
 
 const getDefaultBudgetData = (year: number) => ({
     bpk_opinion: '',
@@ -114,10 +121,28 @@ const addYearData = () => {
 };
 
 const submit = () => {
-    form.put(`/assessment-details/${props.assessment.id}/budget-real`, {
+    form.put(`/assessment-details/${props.assessment.id}/budget-real`);
+};
+
+const confirmDeleteYear = (year: number) => {
+    yearToDelete.value = year;
+    isDeleteDialogOpen.value = true;
+};
+
+const deleteYearData = () => {
+    if (!yearToDelete.value) return;
+    const year = yearToDelete.value;
+    router.delete(`/assessment-details/${props.assessment.id}/budget-real`, {
+        data: { year },
+        preserveScroll: true,
         onSuccess: () => {
-            router.get('/assessments');
-        }
+            // Remove from local state
+            const { [year]: _, ...rest } = form.budgetReals;
+            form.budgetReals = rest;
+            yearsList.value = yearsList.value.filter(y => y !== year);
+            isDeleteDialogOpen.value = false;
+            yearToDelete.value = null;
+        },
     });
 };
 
@@ -168,12 +193,40 @@ const isCalculated = (key: string) => computedKeys.includes(key);
 
 const formatNumber = (val: any) => {
     if (val === undefined || val === null) return '0';
-    return new Intl.NumberFormat('id-ID').format(Number(val) || 0);
+    return new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(Number(val) || 0);
 };
 
-watch(() => form.budgetReals, (newVal) => {
-    Object.keys(newVal).forEach(year => {
-        const item = newVal[year];
+const parseNumber = (val: string): number => {
+    // Remove dots (thousands separator) and replace comma with dot for decimals
+    const cleaned = val.replace(/\./g, '').replace(',', '.');
+    return Number(cleaned) || 0;
+};
+
+const handleCurrencyFocus = (e: FocusEvent) => {
+    const input = e.target as HTMLInputElement;
+    const raw = parseNumber(input.value);
+    input.value = raw === 0 ? '' : String(raw);
+};
+
+const handleCurrencyInput = (e: Event, year: number, key: string) => {
+    const input = e.target as HTMLInputElement;
+    const num = parseNumber(input.value);
+    form.budgetReals[year][key] = num;
+};
+
+const handleCurrencyBlur = (e: FocusEvent, year: number, key: string) => {
+    const input = e.target as HTMLInputElement;
+    const num = parseNumber(input.value);
+    form.budgetReals[year][key] = num;
+    input.value = formatNumber(num);
+};
+
+const recalculateBudgetReals = () => {
+    Object.keys(form.budgetReals).forEach(year => {
+        const item = form.budgetReals[year];
 
         // PAD: Pendapatan Pajak Daerah + Pendapatan Retribusi Daerah + Pendapatan Hasil Pengelolaan Kekayaan Daerah yang Dipisah + Lain-lain PAD yang sah
         item.pad_after_cleansing = (Number(item.tax_income) || 0) +
@@ -214,7 +267,14 @@ watch(() => form.budgetReals, (newVal) => {
         item.surplus_deficit = (Number(item.income_after_cleansing) || 0) -
             (Number(item.total_spending_and_transfer) || 0);
     });
-}, { deep: true, immediate: true });
+};
+
+// Kalkulasi awal saat data sudah ada
+recalculateBudgetReals();
+nextTick(recalculateBudgetReals);
+
+// Recalculate saat data berubah
+watch(() => form.budgetReals, recalculateBudgetReals, { deep: true });
 
 </script>
 
@@ -227,7 +287,7 @@ watch(() => form.budgetReals, (newVal) => {
     <div class="container mx-auto p-4 space-y-6">
         <div class="flex items-center justify-between mb-6">
             <Dialog v-model:open="isModalOpen">
-                <DialogTrigger as-child v-if="can('create-assessments')">
+                <DialogTrigger as-child v-if="can('create-budget_reals')">
                     <Button class="bg-teal-600 hover:bg-teal-700 text-white">
                         <Plus class="w-4 h-4 mr-2" /> Tambah Data
                     </Button>
@@ -276,28 +336,28 @@ watch(() => form.budgetReals, (newVal) => {
                         <div class="space-y-4">
                             <h3 class="font-bold border-b pb-2 text-teal-700">Rincian Pendapatan</h3>
                             <div class="grid grid-cols-2 gap-x-8 gap-y-3">
-                                <template v-for="row in rows.filter(r => !r.isHeader && !isCalculated(r.key) && [
+                                <template v-for="row in rows.filter(r => !r.isHeader && !isCalculated(r.key as string) && [
                                     'tax_income', 'retribution_income', 'asset_income', 'other_pad', 'transfer_income', 'other_legitimate_income'
-                                ].includes(r.key))" :key="row.key">
+                                ].includes(r.key as string))" :key="row.key">
                                     <div class="space-y-1">
                                         <Label class="text-xs">{{ row.label }}</Label>
-                                        <Input type="number" step="0.01" v-model="newYearForm.data[row.key]"
-                                            class="h-8" />
+                                        <Input type="number" step="0.01"
+                                            v-model="(newYearForm.data as any)[row.key as string]" class="h-8" />
                                     </div>
                                 </template>
                             </div>
 
                             <h3 class="font-bold border-b pb-2 text-teal-700 pt-4">Rincian Belanja & Lainnya</h3>
                             <div class="grid grid-cols-2 gap-x-8 gap-y-3">
-                                <template v-for="row in rows.filter(r => !r.isHeader && !isCalculated(r.key) && [
+                                <template v-for="row in rows.filter(r => !r.isHeader && !isCalculated(r.key as string) && [
                                     'employee_spending', 'good_service_spending', 'interest_spending', 'subsidy_spending', 'grant_spending', 'social_spending',
                                     'land_spending', 'machine_spending', 'building_spending', 'infrastructure_spending', 'other_fix_asset_spending',
                                     'unexpected_spending', 'total_transfer'
-                                ].includes(r.key))" :key="row.key">
+                                ].includes(r.key as string))" :key="row.key">
                                     <div class="space-y-1">
                                         <Label class="text-xs">{{ row.label }}</Label>
-                                        <Input type="number" step="0.01" v-model="newYearForm.data[row.key]"
-                                            class="h-8" />
+                                        <Input type="number" step="0.01"
+                                            v-model="(newYearForm.data as any)[row.key as string]" class="h-8" />
                                     </div>
                                 </template>
                             </div>
@@ -311,6 +371,22 @@ watch(() => form.budgetReals, (newVal) => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <!-- Delete Confirmation Dialog -->
+            <Dialog v-model:open="isDeleteDialogOpen">
+                <DialogContent class="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                        <DialogDescription>
+                            Apakah Anda yakin ingin menghapus data anggaran tahun <strong>{{ yearToDelete }}</strong>? Tindakan ini tidak dapat dibatalkan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" @click="isDeleteDialogOpen = false">Batal</Button>
+                        <Button variant="destructive" @click="deleteYearData">Hapus</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
 
         <Alert class="mb-6 bg-green-50 text-green-800 border-green-200" v-if="form.recentlySuccessful">
@@ -320,8 +396,9 @@ watch(() => form.budgetReals, (newVal) => {
             </AlertDescription>
         </Alert>
 
-        <form @submit.prevent="submit" class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 font-sans">
-            
+        <form @submit.prevent="submit"
+            class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 font-sans">
+
             <div class="bg-teal-600 text-white py-4 text-center shadow-inner">
 
                 <div class="flex items-center justify-center gap-2">
@@ -331,19 +408,8 @@ watch(() => form.budgetReals, (newVal) => {
                             <HelpCircle :size="20" class="text-white" />
                         </HoverCardTrigger>
                         <HoverCardContent>
-                            Pada Asessment Ekonomi dan Keuangan, Saudara diminta untuk memasukan data keuangan
-                            Pemerintah Daerah
-                            (Pemda) berdasarkan laporan keuangan terakhir (audited) dan juga memperhatikan data ekonomi
-                            seperti
-                            tingkat kemiskinan, tingkat pengangguran, dan Indeks Pembangunan Manusia (IPM). Pada bagian
-                            ini juga
-                            diberikan data pengelolaan keuangan seperti kapasitas fiskal, kemandirian anggaran,
-                            kemampuan
-                            memperoleh pendapatan, efektifitas belanja dan likuiditas yang pada akhirnya akan
-                            menghasilkan
-                            indikasi rating diakhiri dengan kesimpulan atas asessment ekonomi dan keuangan, tantangan
-                            dan
-                            rencana aksi sebagai hasil akhir tahap ini.
+                            Pada Asessment Data Keuangan, Saudara diminta untuk memasukan data keuangan
+                            Pemerintah Daerah(Pemda) berdasarkan laporan keuangan terakhir (audited).
                         </HoverCardContent>
                     </HoverCard>
                 </div>
@@ -362,9 +428,16 @@ watch(() => form.budgetReals, (newVal) => {
                     <thead>
                         <tr class="bg-teal-500 text-white">
                             <th class="p-3 border border-teal-600 w-1/3">Uraian</th>
-                            <th v-for="year in yearsList" :key="year"
+                            <th v-for="year in displayedYears" :key="year"
                                 class="p-3 border border-teal-600 text-center w-32">
-                                {{ year }}
+                                <div class="flex items-center justify-center gap-1">
+                                    {{ year }}
+                                    <Button v-if="can('delete-budget_reals')" type="button" variant="ghost" size="sm"
+                                        class="h-5 w-5 p-0 text-white/70 hover:text-red-200 hover:bg-transparent"
+                                        @click.prevent="confirmDeleteYear(year)">
+                                        <Trash :size="13" />
+                                    </Button>
+                                </div>
                             </th>
                         </tr>
                     </thead>
@@ -382,22 +455,25 @@ watch(() => form.budgetReals, (newVal) => {
                             </td>
 
                             <template v-if="row.isHeader">
-                                <td v-for="year in yearsList" :key="year" class="p-2 border border-gray-200 bg-gray-50">
+                                <td v-for="year in displayedYears" :key="year" class="p-2 border border-gray-200 bg-gray-50">
                                 </td>
                             </template>
 
                             <template v-else>
-                                <td v-for="year in yearsList" :key="year" class="p-1 border border-gray-200">
-                                    <template v-if="isCalculated(row.key)">
+                                <td v-for="year in displayedYears" :key="year" class="p-1 border border-gray-200">
+                                    <template v-if="isCalculated(row.key as string)">
                                         <div
                                             class="px-3 py-1.5 text-right font-bold bg-teal-50/50 rounded border border-teal-100 min-h-[32px]">
                                             {{ formatNumber(form.budgetReals[year] ? form.budgetReals[year][row.key as
                                                 string] : 0) }}
                                         </div>
                                     </template>
-                                    <Input v-else type="number" step="0.01"
-                                        v-model="form.budgetReals[year][row.key as string]"
-                                        class="w-full text-right h-8 text-sm focus:ring-teal-500 focus:border-teal-500"
+                                    <input v-else type="text"
+                                        :value="formatNumber(form.budgetReals[year][row.key as string])"
+                                        @focus="handleCurrencyFocus"
+                                        @input="handleCurrencyInput($event, year, row.key as string)"
+                                        @blur="handleCurrencyBlur($event, year, row.key as string)"
+                                        class="flex rounded-md border border-input px-3 py-1 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full text-right h-8 text-sm focus:ring-teal-500 focus:border-teal-500 bg-transparent"
                                         :class="{ 'font-semibold bg-teal-50/50': row.bold }" />
                                 </td>
                             </template>
@@ -405,21 +481,22 @@ watch(() => form.budgetReals, (newVal) => {
                     </tbody>
                 </table>
             </div>
-            
-             <div class="px-6 py-4 flex justify-between items-center bg-gray-50 border-t border-gray-200 mt-4">
+
+            <div class="px-6 py-4 flex justify-between items-center bg-gray-50 border-t border-gray-200 mt-4">
                 <Link href="/assessments">
                     <Button type="button" variant="outline" class="flex items-center gap-2">
                         <ChevronLeft :size="16" /> Back
                     </Button>
                 </Link>
                 <div v-if="can('create-assessments')">
-                    <Button type="submit" :disabled="form.processing" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
+                    <Button type="submit" :disabled="form.processing"
+                        class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
                         <Save class="w-4 h-4 mr-2" />
-                        Simpan Perubahan
+                        Simpan dan Lanjutkan
                     </Button>
                 </div>
             </div>
         </form>
-        
+
     </div>
 </template>

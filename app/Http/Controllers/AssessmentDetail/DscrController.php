@@ -25,7 +25,15 @@ class DscrController extends Controller
         $budgetPlan = $gov->budget_plan()->where('year', $year)->first()
             ?? new Budget_plan(['year' => $year, 'gov_code' => $gov->code]);
 
-        $financing = $gov->financing()->first() ?? new Financing(['gov_code' => $gov->code]);
+        $financings = $gov->financing()->get();
+        $financingSMI = $financings->firstWhere('lender', 'SMI');
+        $financingLainnya = $financings->where('lender', '!=', 'SMI')->first();
+
+        $financing = [
+            'ds_exist' => $financingSMI->ds_exist ?? ($financings->first()->ds_exist ?? 0),
+            'os_debt_smi' => $financingSMI->os_debt ?? 0,
+            'os_debt_lainnya' => $financingLainnya->os_debt ?? 0,
+        ];
 
         $debtService = $assessment->debtService ?: new Debt_service([
             'assessment_id' => $assessment->id,
@@ -56,6 +64,9 @@ class DscrController extends Controller
             'loan_withdrawal_plus_os' => 'nullable|numeric',
             'unappropiated_revenue' => 'nullable|numeric',
             'budgetPlan' => 'nullable|array',
+            'ds_exist' => 'nullable|numeric',
+            'outstanding_smi' => 'nullable|numeric',
+            'outstanding_lainnya' => 'nullable|numeric',
         ]);
 
         $assessment->load('assessee.gov');
@@ -85,6 +96,41 @@ class DscrController extends Controller
             ]
         );
 
-        return redirect()->route('assessments.index')->with('message', 'DSCR Summary updated successfully!');
+        if ($request->has('ds_exist') || $request->has('outstanding_smi')) {
+            $gov->financing()->updateOrCreate(
+                ['gov_code' => $gov->code, 'lender' => 'SMI'],
+                [
+                    'ds_exist' => $request->ds_exist,
+                    'os_debt' => $request->outstanding_smi
+                ]
+            );
+        }
+
+        if ($request->has('outstanding_lainnya')) {
+            $gov->financing()->updateOrCreate(
+                ['gov_code' => $gov->code, 'lender' => 'Lainnya'],
+                ['os_debt' => $request->outstanding_lainnya]
+            );
+        }
+
+        return redirect()->route("assessment-details.indicative-rating.edit", $assessment->id)->with("message", "DSCR Summary berhasil diisi!");
+    }
+
+    public function destroyBudgetPlan(Request $request, Assessment $assessment)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+        ]);
+
+        $assessment->load('assessee.gov');
+        $gov = $assessment->assessee->gov;
+
+        if (!$gov) {
+            return redirect()->back()->with('error', 'Gov not found');
+        }
+
+        $gov->budget_plan()->where('year', $request->year)->delete();
+
+        return redirect()->back()->with('message', "Data Budget Plan tahun {$request->year} berhasil dihapus.");
     }
 }

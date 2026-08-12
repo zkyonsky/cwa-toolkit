@@ -107,6 +107,38 @@ const addPriority = () => {
 const removePriority = (index: number) => {
     form.priorities.splice(index, 1);
 };
+
+const formatCurrency = (val: any) => {
+    if (val === undefined || val === null) return '0';
+    return new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(Number(val) || 0);
+};
+
+const parseNumber = (val: string): number => {
+    const cleaned = val.replace(/\./g, '').replace(',', '.');
+    return Number(cleaned) || 0;
+};
+
+const handleCurrencyFocus = (e: FocusEvent) => {
+    const input = e.target as HTMLInputElement;
+    const raw = parseNumber(input.value);
+    input.value = raw === 0 ? '' : String(raw);
+};
+
+const handlePriorityCurrencyInput = (e: Event, index: number, field: string) => {
+    const input = e.target as HTMLInputElement;
+    const num = parseNumber(input.value);
+    (form.priorities[index] as any)[field] = num;
+};
+
+const handlePriorityCurrencyBlur = (e: FocusEvent, index: number, field: string) => {
+    const input = e.target as HTMLInputElement;
+    const num = parseNumber(input.value);
+    (form.priorities[index] as any)[field] = num;
+    input.value = formatCurrency(num);
+};
 </script>
 
 <template>
@@ -298,15 +330,24 @@ const removePriority = (index: number) => {
                                     class="w-full h-full bg-transparent border-0 px-1 py-1 text-center outline-none focus:ring-0 text-xs">
                             </td>
                             <td class="border border-black bg-[#ffceaa] p-0">
-                                <input v-model="prio.estimated_cost" type="number" step="0.01"
+                                <input type="text" :value="formatCurrency(prio.estimated_cost)"
+                                    @focus="handleCurrencyFocus"
+                                    @input="(e) => handlePriorityCurrencyInput(e, index, 'estimated_cost')"
+                                    @blur="(e) => handlePriorityCurrencyBlur(e, index, 'estimated_cost')"
                                     class="w-full h-full bg-transparent border-0 px-1 py-1 outline-none focus:ring-0 text-xs text-right">
                             </td>
                             <td class="border border-black bg-[#ffceaa] p-0">
-                                <input v-model="prio.fund_source" type="text"
-                                    class="w-full h-full bg-transparent border-0 px-1 py-1 outline-none focus:ring-0 text-xs">
+                                <input type="text" :value="formatCurrency(prio.fund_source)"
+                                    @focus="handleCurrencyFocus"
+                                    @input="(e) => handlePriorityCurrencyInput(e, index, 'fund_source')"
+                                    @blur="(e) => handlePriorityCurrencyBlur(e, index, 'fund_source')"
+                                    class="w-full h-full bg-transparent border-0 px-1 py-1 outline-none focus:ring-0 text-xs text-right">
                             </td>
                             <td class="border border-black bg-[#ffceaa] p-0">
-                                <input v-model="prio.alt_fund_need" type="number" step="0.01"
+                                <input type="text" :value="formatCurrency(prio.alt_fund_need)"
+                                    @focus="handleCurrencyFocus"
+                                    @input="(e) => handlePriorityCurrencyInput(e, index, 'alt_fund_need')"
+                                    @blur="(e) => handlePriorityCurrencyBlur(e, index, 'alt_fund_need')"
                                     class="w-full h-full bg-transparent border-0 px-1 py-1 outline-none focus:ring-0 text-xs text-right">
                             </td>
                             <td class="border border-black bg-[#ffceaa] p-0">
@@ -362,7 +403,7 @@ const removePriority = (index: number) => {
                             <span v-show="form.recentlySuccessful" class="text-sm text-green-600 transition-opacity">Saved.</span>
                             <Button type="submit" :disabled="form.processing"
                                 class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-sm">
-                                <Save :size="16" /> Save Changes
+                                <Save :size="16" /> Simpan dan Lanjutkan
                             </Button>
                         </div>
                     </div>
