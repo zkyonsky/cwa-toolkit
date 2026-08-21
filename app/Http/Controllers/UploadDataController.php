@@ -15,44 +15,102 @@ class UploadDataController extends Controller
      */
     private const ALLOWED_COLUMNS = [
         'budget_reals' => [
-            'gov_code', 'year', 'income_after_cleansing', 'pad_after_cleansing',
-            'local_tax', 'local_retribution', 'separated_asset_management_results',
-            'other_legitimate_pad', 'transfer_income', 'general_allocation_fund',
-            'special_allocation_fund', 'profit_sharing_fund', 'other_legitimate_income',
-            'spending_after_cleansing', 'operational_spending', 'employee_spending',
-            'capital_spending', 'other_spending', 'grant_spending',
-            'social_assistance_spending', 'fix_asset_spending', 'other_fix_asset_spending',
+            'gov_code',
+            'year',
+            'income_after_cleansing',
+            'pad_after_cleansing',
+            'local_tax',
+            'local_retribution',
+            'separated_asset_management_results',
+            'other_legitimate_pad',
+            'transfer_income',
+            'general_allocation_fund',
+            'special_allocation_fund',
+            'profit_sharing_fund',
+            'other_legitimate_income',
+            'spending_after_cleansing',
+            'operational_spending',
+            'employee_spending',
+            'capital_spending',
+            'other_spending',
+            'grant_spending',
+            'social_assistance_spending',
+            'fix_asset_spending',
+            'other_fix_asset_spending',
             'total_transfer',
         ],
         'budget_plans' => [
-            'gov_code', 'year', 'self_revenue', 'underground_water_tax',
-            'street_lighting_tax', 'electricity_tax', 'opsen_vehicle_tax',
-            'blud_revenue', 'cigarette_tax', 'shared_cigarette_tax',
-            'vehicle_tax', 'shared_vehicle_tax', 'general_allocation_fund',
-            'general_allocation_fund_education', 'general_allocation_fund_health',
-            'general_allocation_fund_public_work', 'general_allocation_fund_district',
-            'profit_sharing_fund', 'profit_sharing_fund_cigarette',
-            'profit_sharing_fund_sawit', 'profit_sharing_fund_reboisation',
-            'add_profit_sharing_fund_oli_gas_otsus', 'special_autonomy',
-            'inter_regional_transfer_revenue', '10_percent_shared_vehicle_tax',
-            '50_percent_shared_cigarette_tax', 'other_revenue', 'central_gov_grant',
-            'national_health_revenue', 'sharing_fund_spending', 'village_fund_allocation',
-            'employee_spending', 'teacher_non_certification_allowance',
-            'teacher_certification_allowance', 'regional_teacher_additional_allowance',
-            'p3k_allowance', 'regional_hospital_retribution', 'availability_payment',
+            'gov_code',
+            'year',
+            'self_revenue',
+            'underground_water_tax',
+            'street_lighting_tax',
+            'electricity_tax',
+            'opsen_vehicle_tax',
+            'blud_revenue',
+            'cigarette_tax',
+            'shared_cigarette_tax',
+            'vehicle_tax',
+            'shared_vehicle_tax',
+            'general_allocation_fund',
+            'general_allocation_fund_education',
+            'general_allocation_fund_health',
+            'general_allocation_fund_public_work',
+            'general_allocation_fund_district',
+            'profit_sharing_fund',
+            'profit_sharing_fund_cigarette',
+            'profit_sharing_fund_sawit',
+            'profit_sharing_fund_reboisation',
+            'add_profit_sharing_fund_oli_gas_otsus',
+            'special_autonomy',
+            'inter_regional_transfer_revenue',
+            '10_percent_shared_vehicle_tax',
+            '50_percent_shared_cigarette_tax',
+            'other_revenue',
+            'central_gov_grant',
+            'national_health_revenue',
+            'sharing_fund_spending',
+            'village_fund_allocation',
+            'employee_spending',
+            'teacher_non_certification_allowance',
+            'teacher_certification_allowance',
+            'regional_teacher_additional_allowance',
+            'p3k_allowance',
+            'regional_hospital_retribution',
+            'availability_payment',
         ],
         'economy_indicators' => [
-            'gov_code', 'year', 'population', 'poverty_rate', 'unemployment_rate',
-            'gdp_growth', 'inflation', 'gdp',
+            'gov_code',
+            'poverty',
+            'unemployment',
+            'gdp_growth',
+            'gdp_perkapita',
+            'hdci',
+            'infras_real',
+            'fiscal_ratio',
+            'year',
+            'gdp',
         ],
         'sectoral_gdps' => [
-            'gov_code', 'year', 'agriculture_forestry_fishery', 'mining_quarrying',
-            'processing_industry', 'electricity_gas', 'water_supply_waste',
-            'construction', 'wholesale_retail_trade', 'transportation_warehousing',
-            'accommodation_food_beverage', 'information_communication',
-            'financial_insurance', 'real_estate', 'company_service',
-            'government_defense_social_security', 'education_service',
-            'health_social_work', 'other_service',
+            'gov_code',
+            'year',
+            'agriculture_forestry_fishery',
+            'mining_quarrying',
+            'processing_industry',
+            'electricity_gas',
+            'water_waste',
+            'contruction',
+            'trade_vehicle_repair',
+            'transportation_warehousing',
+            'acomodation_food_beverage',
+            'information_communication',
+            'finance_insurance',
+            'real_estate',
+            'company_service',
+            'gov_adm_defense_sosial_security',
+            'education_service',
+            'health_social_service',
+            'other_service',
         ],
     ];
 
@@ -139,9 +197,10 @@ class UploadDataController extends Controller
                 // Only keep whitelisted columns (defense in depth)
                 $data = array_intersect_key($data, array_flip($allowedColumns));
 
-                // Convert empty strings to null
+                // Convert empty strings and common empty placeholders to null
                 foreach ($data as $k => $v) {
-                    if ($v === '') {
+                    $v = trim((string) $v);
+                    if ($v === '' || $v === '-') {
                         $data[$k] = null;
                     }
                 }
@@ -157,7 +216,15 @@ class UploadDataController extends Controller
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
-            return redirect()->back()->with('error', 'Error importing data. Please check your CSV format and try again.');
+
+            $errorDetail = explode('(Connection:', $e->getMessage())[0];
+            $errorMessage = 'Error importing data: ' . trim($errorDetail);
+
+            if ($e->getCode() == 23000) {
+                $errorMessage = 'Data failed to import due to a database constraint violation. Please check if the gov_code exists in the system. Details: ' . trim($errorDetail);
+            }
+
+            return redirect()->back()->with('error', $errorMessage);
         }
 
         fclose($handle);
