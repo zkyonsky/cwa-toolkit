@@ -32,7 +32,18 @@ const form = useForm({
   pad_last_three_year: props.financialIndicator?.pad_last_three_year || 0,
   total_debt: props.debtService?.loan_withdrawal_plus_os || 0,
   fiscal_capacity: props.financialIndicator?.fiscal_capacity || '',
+  bpk_opinions: {} as Record<string, string>,
 });
+
+watch(() => props.financialData, (newData) => {
+  if (newData) {
+    for (const year in newData) {
+      if (!form.bpk_opinions[year]) {
+        form.bpk_opinions[year] = newData[year].bpk_opinion || '';
+      }
+    }
+  }
+}, { immediate: true, deep: true });
 
 const startYear = ref(props.years ? props.years[0] : (new Date().getFullYear() - 3));
 const endYear = ref(props.years ? props.years[props.years.length - 1] : (new Date().getFullYear() - 1));
@@ -225,8 +236,20 @@ const formatPercent = (value: number) => {
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2 font-bold">Opini BPK atas Laporan Realisasi Anggaran</div>
-              <div class="col-span-2 p-2 text-center text-orange-700 bg-orange-50 font-medium whitespace-pre border-r"
-                v-for="year in years" :key="'bpk' + year">{{ financialData[year]?.bpk_opinion || '-' }}</div>
+              <div class="col-span-2 p-1 border-r bg-orange-50" v-for="year in years" :key="'bpk' + year">
+                <Select v-model="form.bpk_opinions[year]">
+                  <SelectTrigger class="h-8 border-orange-300 text-orange-700 bg-white font-medium text-xs">
+                    <SelectValue placeholder="-" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WTP">WTP</SelectItem>
+                    <SelectItem value="WDP">WDP</SelectItem>
+                    <SelectItem value="TW">TW</SelectItem>
+                    <SelectItem value="TMP">TMP</SelectItem>
+                    <SelectItem value="Unaudited">Unaudited</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div class="col-span-2 p-2 text-xs italic text-gray-500 bg-gray-50"></div>
             </div>
 

@@ -15,27 +15,34 @@ class UploadDataController extends Controller
      */
     private const ALLOWED_COLUMNS = [
         'budget_reals' => [
+            'bpk_opinion',
+            'input_status',
             'gov_code',
             'year',
             'income_after_cleansing',
             'pad_after_cleansing',
-            'local_tax',
-            'local_retribution',
-            'separated_asset_management_results',
-            'other_legitimate_pad',
+            'tax_income',
+            'retribution_income',
+            'asset_income',
+            'other_pad',
             'transfer_income',
-            'general_allocation_fund',
-            'special_allocation_fund',
-            'profit_sharing_fund',
             'other_legitimate_income',
+            'other_income',
             'spending_after_cleansing',
             'operational_spending',
             'employee_spending',
-            'capital_spending',
-            'other_spending',
+            'good_service_spending',
+            'interest_spending',
+            'subsidy_spending',
             'grant_spending',
-            'social_assistance_spending',
-            'fix_asset_spending',
+            'social_spending',
+            'capital_spending',
+            'land_spending',
+            'machine_spending',
+            'building_spending',
+            'infrastructure_spending',
+            'other_asset_spending',
+            'unexpected_spending',
             'other_fix_asset_spending',
             'total_transfer',
         ],
@@ -43,41 +50,40 @@ class UploadDataController extends Controller
             'gov_code',
             'year',
             'self_revenue',
-            'underground_water_tax',
-            'street_lighting_tax',
-            'electricity_tax',
-            'opsen_vehicle_tax',
-            'blud_revenue',
-            'cigarette_tax',
-            'shared_cigarette_tax',
             'vehicle_tax',
             'shared_vehicle_tax',
+            'cigarette_tax',
+            'shared_cigarette_tax',
+            'underground_water_tax',
+            'electricity_tax',
+            'street_lighting_tax',
+            'opsen_vehicle_tax',
+            'blud_revenue',
+            'regional_hospital_retribution',
             'general_allocation_fund',
+            'general_allocation_fund_district',
             'general_allocation_fund_education',
             'general_allocation_fund_health',
             'general_allocation_fund_public_work',
-            'general_allocation_fund_district',
             'profit_sharing_fund',
             'profit_sharing_fund_cigarette',
-            'profit_sharing_fund_sawit',
             'profit_sharing_fund_reboisation',
+            'profit_sharing_fund_sawit',
             'add_profit_sharing_fund_oli_gas_otsus',
             'special_autonomy',
-            'inter_regional_transfer_revenue',
-            '10_percent_shared_vehicle_tax',
-            '50_percent_shared_cigarette_tax',
             'other_revenue',
             'central_gov_grant',
             'national_health_revenue',
             'sharing_fund_spending',
             'village_fund_allocation',
             'employee_spending',
+            'p3k_allowance',
             'teacher_non_certification_allowance',
             'teacher_certification_allowance',
             'regional_teacher_additional_allowance',
-            'p3k_allowance',
-            'regional_hospital_retribution',
-            'availability_payment',
+            'inter_regional_transfer_revenue',
+            '50_percent_shared_cigarette_tax',
+            '10_percent_shared_vehicle_tax',
         ],
         'economy_indicators' => [
             'gov_code',
@@ -178,40 +184,88 @@ class UploadDataController extends Controller
 
         $imported = 0;
 
+        // Pre-read all rows so we can validate gov_code before inserting
+        $rows = [];
+        $rowNumber = 1; // 1-based (header is row 1)
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowNumber++;
+            if (count(array_filter($row)) === 0) {
+                continue;
+            }
+
+            // If row doesn't match header length, pad it or slice it
+            if (count($row) < count($header)) {
+                $row = array_pad($row, count($header), null);
+            } elseif (count($row) > count($header)) {
+                $row = array_slice($row, 0, count($header));
+            }
+
+            $data = array_combine($header, $row);
+
+            // Only keep whitelisted columns (defense in depth)
+            $data = array_intersect_key($data, array_flip($allowedColumns));
+
+            // Convert empty strings and common empty placeholders to null
+            foreach ($data as $k => $v) {
+                $v = trim((string) $v);
+                if ($v === '' || $v === '-') {
+                    $data[$k] = null;
+                }
+            }
+
+            $rows[] = ['row_number' => $rowNumber, 'data' => $data];
+        }
+        fclose($handle);
+
+        // Validate gov_code foreign key if the CSV contains a gov_code column
+        if (in_array('gov_code', $header)) {
+            $csvGovCodes = collect($rows)
+                ->pluck('data.gov_code')
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($csvGovCodes->isNotEmpty()) {
+                $existingCodes = DB::table('govs')
+                    ->whereIn('code', $csvGovCodes->all())
+                    ->pluck('code')
+                    ->map(fn ($c) => (string) $c);
+
+                $invalidCodes = $csvGovCodes->diff($existingCodes);
+
+                if ($invalidCodes->isNotEmpty()) {
+                    // Collect row numbers per invalid gov_code
+                    $invalidDetails = [];
+                    foreach ($rows as $r) {
+                        $code = $r['data']['gov_code'] ?? null;
+                        if ($code !== null && $invalidCodes->contains($code)) {
+                            $invalidDetails[$code][] = $r['row_number'];
+                        }
+                    }
+
+                    $detailParts = [];
+                    foreach ($invalidDetails as $code => $rowNums) {
+                        $detailParts[] = "gov_code \"{$code}\" (baris " . implode(', ', $rowNums) . ')';
+                    }
+
+                    return redirect()->back()->with('error',
+                        'Import gagal: gov_code berikut tidak ditemukan di tabel pemerintah daerah: '
+                        . implode('; ', $detailParts)
+                        . '. Pastikan semua gov_code sudah terdaftar sebelum import.'
+                    );
+                }
+            }
+        }
+
         DB::beginTransaction();
         try {
-            while (($row = fgetcsv($handle)) !== false) {
-                if (count(array_filter($row)) === 0) {
-                    continue;
-                }
-
-                // If row doesn't match header length, pad it or slice it
-                if (count($row) < count($header)) {
-                    $row = array_pad($row, count($header), null);
-                } elseif (count($row) > count($header)) {
-                    $row = array_slice($row, 0, count($header));
-                }
-
-                $data = array_combine($header, $row);
-
-                // Only keep whitelisted columns (defense in depth)
-                $data = array_intersect_key($data, array_flip($allowedColumns));
-
-                // Convert empty strings and common empty placeholders to null
-                foreach ($data as $k => $v) {
-                    $v = trim((string) $v);
-                    if ($v === '' || $v === '-') {
-                        $data[$k] = null;
-                    }
-                }
-
-                DB::table($table)->insert($data);
+            foreach ($rows as $r) {
+                DB::table($table)->insert($r['data']);
                 $imported++;
             }
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            fclose($handle);
             Log::error("CSV import failed for {$type}", [
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
@@ -226,8 +280,6 @@ class UploadDataController extends Controller
 
             return redirect()->back()->with('error', $errorMessage);
         }
-
-        fclose($handle);
 
         return redirect()->back()->with('message', "{$imported} record(s) imported successfully into {$type}.");
     }

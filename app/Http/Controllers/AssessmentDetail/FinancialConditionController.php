@@ -117,7 +117,20 @@ class FinancialConditionController extends Controller
             'ds_revenue' => 'nullable|numeric',
             'dscr' => 'nullable|numeric',
             'fiscal_capacity' => 'nullable|string',
+            'bpk_opinions' => 'nullable|array',
+            'bpk_opinions.*' => 'nullable|string',
         ]);
+
+        if ($request->has('bpk_opinions') && is_array($request->bpk_opinions)) {
+            $gov = $assessment->assessee->gov;
+            if ($gov) {
+                foreach ($request->bpk_opinions as $year => $opinion) {
+                    if (!empty($opinion)) {
+                        $gov->budget_real()->where('year', $year)->update(['bpk_opinion' => $opinion]);
+                    }
+                }
+            }
+        }
 
         Financial_indicator::updateOrCreate(
             ['assessment_id' => $assessment->id],

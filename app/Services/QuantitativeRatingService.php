@@ -26,6 +26,16 @@ class QuantitativeRatingService
         $this->indicative_rating = new \App\Services\IndicativeRatingService();
     }
 
+    /**
+     * Menghitung total skor kuantitatif dan menentukan peringkat.
+     *
+     * Parameter berasal dari controller IndicativeRatingController yang mengambil data
+     * dari model Economy_indicator, Financial_indicator, dan fungsi-fungsi di IndicativeRatingService.
+     * 
+     * @return array Output berupa skor_ekonomi, skor_keuangan, skor_kuantitatif, dan peringkat.
+     * Hasil dari fungsi ini akan dikembalikan ke controller untuk disimpan di tabel assessment
+     * (kolom economy_condition, financial_condition, dan indicative_rating) dan ditampilkan ke frontend.
+     */
     public function calculate($skor_perkapita, $kategori_konsentrasi, $pengangguran, $ipm, $skor_pad_pendapatan, $kategori_volatilitas_pad_pendapatan, $operasi_pendapatan, $skor_modal_belanja, $skor_pegawai_belanja, $pad_tiga_tahun, $skor_utang_pendapatan, $skor_utang_pdrb, $skor_dscr, $skor_ds_pendapatan, $kategori_kapasitas_fiskal, $kategori_pemda, $syarat_minimum, $frekuensi_wtp)
     {
         $bobot = $this->bobot;
@@ -76,6 +86,14 @@ class QuantitativeRatingService
         ];
     }
 
+    /**
+     * Menggabungkan skor PDRB per kapita dan konsentrasi PDRB.
+     *
+     * @param float $skor_perkapita Berasal dari output rasio IndicativeRatingService->hitungKategoriPDRB
+     * @param string $kategori_konsentrasi Berasal dari output IndicativeRatingService->hitungKonsentrasiPDRB
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate() 
+     * untuk menghitung proporsi skor pdrb pada komponen ekonomi.
+     */
     public function pdrb(float $skor_perkapita, string $kategori_konsentrasi): int
     {
         $skor = (int) $skor_perkapita;
@@ -87,6 +105,14 @@ class QuantitativeRatingService
         // Untuk kategori Konsentrasi "Sedang" atau "Rendah"
         return max(1, min(5, $skor));
     }
+    /**
+     * Menggabungkan skor PAD terhadap Pendapatan dengan Volatilitas PAD.
+     *
+     * @param float $skor_pad_pendapatan Berasal dari output rasio IndicativeRatingService->hitungPadPendapatan
+     * @param string $kategori_volatilitas_pad_pendapatan Berasal dari output IndicativeRatingService->hitungVolatilPad
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi kemandirian_anggaran pada komponen keuangan.
+     */
     public function kemandirianAnggaran(float $skor_pad_pendapatan, string $kategori_volatilitas_pad_pendapatan): int
     {
         $skor = (int) $skor_pad_pendapatan;
@@ -101,6 +127,14 @@ class QuantitativeRatingService
 
         return $skor;
     }
+    /**
+     * Memadukan skor belanja modal dan belanja pegawai menggunakan matriks.
+     *
+     * @param int $skor_modal_belanja Berasal dari output rasio IndicativeRatingService->hitungBelanjaModal
+     * @param int $skor_pegawai_belanja Berasal dari output rasio IndicativeRatingService->hitungPegawaiBelanja
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi efektifitas_belanja pada komponen keuangan.
+     */
     public function efektifitasBelanja(int $skor_modal_belanja, int $skor_pegawai_belanja): int
     {
         $pegawai = (int) $skor_pegawai_belanja;
@@ -116,6 +150,14 @@ class QuantitativeRatingService
 
         return $matrix[$pegawai][$modal] ?? 1;
     }
+    /**
+     * Memadukan skor utang terhadap pendapatan dan utang terhadap PDRB menggunakan matriks.
+     *
+     * @param int $skor_utang_pendapatan Berasal dari output rasio IndicativeRatingService->hitungUtangPendapatan
+     * @param int $skor_utang_pdrb Berasal dari output rasio IndicativeRatingService->hitungUtangPdrb
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi beban_utang pada komponen keuangan.
+     */
     public function bebanUtang(int $skor_utang_pendapatan, int $skor_utang_pdrb): int
     {
         $utang_pendapatan = (int) $skor_utang_pendapatan;
@@ -131,6 +173,14 @@ class QuantitativeRatingService
 
         return $matrix[$utang_pendapatan][$utang_pdrb] ?? 1;
     }
+    /**
+     * Memadukan skor DSCR dan Debt Service terhadap Pendapatan menggunakan matriks.
+     *
+     * @param int $skor_dscr Berasal dari output rasio IndicativeRatingService->hitungDscr
+     * @param int $skor_ds_pendapatan Berasal dari output rasio IndicativeRatingService->hitungDsPendapatan
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi likuiditas pada komponen keuangan.
+     */
     public function likuiditas(int $skor_dscr, int $skor_ds_pendapatan): int
     {
         $dscr = (int) $skor_dscr;
@@ -145,6 +195,14 @@ class QuantitativeRatingService
 
         return $matrix[$dscr][$ds_pendapatan] ?? 1;
     }
+    /**
+     * Menyesuaikan kategori kapasitas fiskal berdasarkan level/tipe Pemda (Provinsi atau Kabupaten/Kota).
+     *
+     * @param string $kategori_kapasitas_fiskal Berasal dari field fiscal_capacity pada model Financial_indicator
+     * @param string $kategori_pemda Berasal dari field level pada model Gov (Provinsi / Kabupaten/Kota)
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi kapasitas_fiskal pada komponen keuangan.
+     */
     public function kapasitasFiskal(string $kategori_kapasitas_fiskal, string $kategori_pemda): int
     {
         $matrix = [
@@ -157,6 +215,14 @@ class QuantitativeRatingService
 
         return $matrix[$kategori_kapasitas_fiskal][$kategori_pemda] ?? 1;
     }
+    /**
+     * Menentukan skor kualitas pencatatan keuangan berdasarkan opini BPK.
+     *
+     * @param string $syarat_minimum Berasal dari evaluasi 3 tahun terakhir opini BPK (Memenuhi/Tidak memenuhi) di controller
+     * @param int $frekuensi_wtp Berasal dari jumlah opini WTP dalam 3 tahun terakhir (dari budget_real)
+     * @return int Output berupa nilai skala 1-5 yang akan diproses kembali di dalam fungsi calculate()
+     * untuk menghitung proporsi kualitas_pencatatan_keuangan pada komponen keuangan.
+     */
     public function kualitas_pencatatan_keuangan(string $syarat_minimum, int $frekuensi_wtp): int
     {
         $matrix = [
