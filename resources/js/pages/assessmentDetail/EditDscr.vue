@@ -370,7 +370,7 @@ const deleteBudgetPlan = () => {
     </AlertDescription>
   </Alert>
 
-  <AssessmentStepper :assessment-id="assessment.id" :current-step="6" />
+  <AssessmentStepper :assessment-id="assessment.id" :current-step="3" />
 
   <div class="p-6 bg-gray-50 min-h-screen font-sans text-sm">
     <div class="max-w-6xl mx-auto">

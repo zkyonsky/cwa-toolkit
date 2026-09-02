@@ -124,6 +124,6 @@ class InfrastructureController extends Controller
             }
         }
 
-        return redirect()->route("assessment-details.budget-real.edit", $assessment->id)->with("message", "Infrastruktur berhasil disimpan!");
+        return redirect()->route("assessment-details.dscr.edit", $assessment->id)->with("message", "Infrastruktur berhasil disimpan!");
     }
 }

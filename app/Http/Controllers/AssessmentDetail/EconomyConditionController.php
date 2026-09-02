@@ -153,7 +153,7 @@ class EconomyConditionController extends Controller
         $gov->economy_indicator()->updateOrCreate(['year' => $year], $economyIndicatorData);
         $gov->sectoral_gdp()->updateOrCreate(['year' => $year], $sectoralGdpData);
 
-        return redirect()->route("assessment-details.dscr.edit", $assessment->id)->with("message", "Ekonomi berhasil diisi!");
+        return redirect()->route("assessment-details.indicative-rating.edit", $assessment->id)->with("message", "Ekonomi berhasil diisi!");
     }
 
     public function destroy(Request $request, Assessment $assessment)

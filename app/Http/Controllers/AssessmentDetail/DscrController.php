@@ -113,7 +113,7 @@ class DscrController extends Controller
             );
         }
 
-        return redirect()->route("assessment-details.indicative-rating.edit", $assessment->id)->with("message", "DSCR Summary berhasil diisi!");
+        return redirect()->route("assessment-details.budget-real.edit", $assessment->id)->with("message", "DSCR Summary berhasil diisi!");
     }
 
     public function destroyBudgetPlan(Request $request, Assessment $assessment)

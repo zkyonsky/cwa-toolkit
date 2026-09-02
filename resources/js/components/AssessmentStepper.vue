@@ -30,8 +30,18 @@ const steps = [
         activeColor: 'bg-teal-700',
         lightColor: 'bg-teal-100 text-teal-700',
     },
+    
     {
         number: 3,
+        label: 'DSCR',
+        icon: Calculator,
+        href: (id: number) => `/assessment-details/${id}/dscr`,
+        color: 'bg-orange-600',
+        activeColor: 'bg-orange-700',
+        lightColor: 'bg-orange-100 text-orange-700',
+    },
+    {
+        number: 4,
         label: 'Data Keuangan',
         icon: Banknote,
         href: (id: number) => `/assessment-details/${id}/budget-real`,
@@ -40,7 +50,7 @@ const steps = [
         lightColor: 'bg-green-100 text-green-700',
     },
     {
-        number: 4,
+        number: 5,
         label: 'Kondisi Keuangan',
         icon: BarChart,
         href: (id: number) => `/assessment-details/${id}/financial-condition`,
@@ -49,22 +59,13 @@ const steps = [
         lightColor: 'bg-indigo-100 text-indigo-700',
     },
     {
-        number: 5,
+        number: 6,
         label: 'Kondisi Ekonomi',
         icon: LineChart,
         href: (id: number) => `/assessment-details/${id}/economy-condition`,
         color: 'bg-blue-600',
         activeColor: 'bg-blue-700',
         lightColor: 'bg-blue-100 text-blue-700',
-    },
-    {
-        number: 6,
-        label: 'DSCR',
-        icon: Calculator,
-        href: (id: number) => `/assessment-details/${id}/dscr`,
-        color: 'bg-orange-600',
-        activeColor: 'bg-orange-700',
-        lightColor: 'bg-orange-100 text-orange-700',
     },
     {
         number: 7,

@@ -77,6 +77,36 @@ const latestTotalRev = computed(() => {
   return latestData.value.total_revenue || 0;
 });
 
+const transferDependencyText = computed(() => {
+  if (!props.years || props.years.length < 1 || !props.financialData) return "";
+  const sortedYears = [...props.years].sort((a, b) => a - b);
+  const firstYear = sortedYears[0];
+  const lastYear = sortedYears[sortedYears.length - 1];
+  
+  const firstRatio = Number(props.financialData[firstYear]?.transfer_ratio) || 0;
+  const lastRatio = Number(props.financialData[lastYear]?.transfer_ratio) || 0;
+  
+  if (firstRatio === 0) return "Ketergantungan pada transfer meningkat";
+  
+  const result = (lastRatio / firstRatio) - 1;
+  return result > 0 ? "Ketergantungan pada transfer meningkat" : "Ketergantungan pada transfer menurun";
+});
+
+const otherLegitDependencyText = computed(() => {
+  if (!props.years || props.years.length < 1 || !props.financialData) return "";
+  const sortedYears = [...props.years].sort((a, b) => a - b);
+  const firstYear = sortedYears[0];
+  const lastYear = sortedYears[sortedYears.length - 1];
+  
+  const firstRatio = Number(props.financialData[firstYear]?.other_legit_ratio) || 0;
+  const lastRatio = Number(props.financialData[lastYear]?.other_legit_ratio) || 0;
+  
+  if (firstRatio === 0) return "Ketergantungan pada transfer meningkat";
+  
+  const result = (lastRatio / firstRatio) - 1;
+  return result > 0 ? "Ketergantungan pada transfer meningkat" : "Ketergantungan pada transfer menurun";
+});
+
 const computedVolatilPad = computed(() => {
   if (!props.years || props.years.length < 2) return 0;
   // ensure sorted
@@ -133,6 +163,14 @@ const formatPercent = (value: number) => {
   if (!value) return "0.00%";
   return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + "%";
 };
+
+const getPadRatioText = (ratio: number) => {
+  if (ratio == null) return "";
+  if (ratio < 25) return "Kemandirian anggaran rendah sekali";
+  if (ratio < 50) return "Kemandirian anggaran rendah";
+  if (ratio < 75) return "Kemandirian anggaran sedang";
+  return "Kemandirian anggaran tinggi";
+};
 </script>
 
 <template>
@@ -147,7 +185,7 @@ const formatPercent = (value: number) => {
     </AlertDescription>
   </Alert>
 
-  <AssessmentStepper :assessment-id="assessment.id" :current-step="4" />
+  <AssessmentStepper :assessment-id="assessment.id" :current-step="5" />
 
   <div class="p-6 bg-gray-50 min-h-screen font-sans">
     <div class="max-w-[1400px] mx-auto">
@@ -269,7 +307,7 @@ const formatPercent = (value: number) => {
               <div class="col-span-4 p-2">PAD</div>
               <div class="col-span-2 p-2 text-right bg-gray-100 border-r" v-for="year in years" :key="'pad' + year">{{
                 formatCurrency(financialData[year]?.total_pad) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Kemandirian anggaran rendah sekali</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Kemandirian anggaran rendah sekali</div> -->
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
@@ -283,22 +321,21 @@ const formatPercent = (value: number) => {
               <div class="col-span-4 p-2">Rasio PAD per Pendapatan Total (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'padr' + year">{{
                 formatPercent(financialData[year]?.pad_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah daerah di Indonesia
-              </div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ getPadRatioText(latestData?.pad_ratio) }}</div>
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2">Rasio Pendapatan Transfer per Pendapatan Total (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'trr' + year">{{
                 formatPercent(financialData[year]?.transfer_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan transfer meningkat</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ transferDependencyText }}</div>
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2">Rasio Pendapatan Lain-lain yang Sah per Pendapatan Total (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'otherr' + year">{{
                 formatPercent(financialData[year]?.other_legit_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Ketergantungan pada transfer menurun</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ otherLegitDependencyText }}</div>
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
@@ -308,7 +345,7 @@ const formatPercent = (value: number) => {
                   class="h-8 border-green-600 bg-green-50 focus-visible:ring-green-600 text-right font-bold" />
               </div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Pertumbuhan PAD 2 tahun terakhir stabil</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ Number(form.volatil_pad) > 50 ? 'Pertumbuhan PAD 2 tahun terakhir volatil' : 'Pertumbuhan PAD 2 tahun terakhir stabil' }}</div>
             </div>
 
             <!-- Kemampuan memperoleh penghasilan -->
@@ -320,14 +357,14 @@ const formatPercent = (value: number) => {
               <div class="col-span-4 p-2">Rasio Surplus/Defisit Operasi per Pendapatan Total (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'opsur' + year">{{
                 formatPercent(financialData[year]?.op_surplus_deficit_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Sedang dibanding pemerintah di Indonesia</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Sedang dibanding pemerintah di Indonesia</div> -->
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2">Rasio Surplus/Defisit Sebelum Pembiayaan (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'sur' + year">{{
                 formatPercent(financialData[year]?.surplus_deficit_before_fin) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Defisit</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ latestData?.surplus_deficit_before_fin < 0 ? 'Defisit' : 'Surplus' }}</div>
             </div>
 
             <!-- Efektivitas belanja -->
@@ -337,16 +374,16 @@ const formatPercent = (value: number) => {
               <div class="col-span-4 p-2">Rasio Belanja Modal per Total belanja (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'caps' + year">{{
                 formatPercent(financialData[year]?.cap_spending_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang dibanding pemerintah di
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang dibanding pemerintah di
                 Indonesia
-              </div>
+              </div> -->
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2">Rasio Belanja Pegawai per Total Belanja (%)</div>
               <div class="col-span-2 p-2 text-right border-r" v-for="year in years" :key="'emps' + year">{{
                 formatPercent(financialData[year]?.emp_spending_ratio) }}</div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah di Indonesia</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah dibanding pemerintah di Indonesia</div> -->
             </div>
 
             <!-- Kualitas penyusunan anggaran -->
@@ -359,7 +396,7 @@ const formatPercent = (value: number) => {
                   class="h-8 border-orange-300 bg-orange-100 text-right font-bold" />
               </div>
               <div class="col-span-4"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Sesuai anggaran</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Sesuai anggaran</div> -->
             </div>
 
             <!-- Beban Utang -->
@@ -380,7 +417,7 @@ const formatPercent = (value: number) => {
               <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ latestPDRB ?
                 formatPercent((form.total_debt / latestPDRB) * 0.0001) : '0.00%' }}</div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div> -->
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
@@ -389,7 +426,7 @@ const formatPercent = (value: number) => {
                 props.debtService?.unappropiated_revenue ?
                   formatPercent((form.total_debt / props.debtService.unappropiated_revenue) * 100) : '0.00%' }}</div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Rata-rata/ Sedang</div> -->
             </div>
 
             <!-- Likuiditas -->
@@ -399,7 +436,7 @@ const formatPercent = (value: number) => {
               <div class="col-span-4 p-2">Debt Service / Pendapatan total (%)</div>
               <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ formatPercent(dsRevenue) }}</div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah</div>
+              <!-- <div class="col-span-2 p-2 text-xs italic text-gray-500">Rendah</div> -->
             </div>
 
             <div class="grid grid-cols-12 divide-x items-center">
@@ -407,7 +444,7 @@ const formatPercent = (value: number) => {
               <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ debtService?.dscr ?
                 debtService.dscr.toFixed(2) + 'x' : '0.00x' }}</div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">>2,5x (Memenuhi)</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ (debtService?.dscr > 2.5) ? '>2,5x (Memenuhi)' : '<2,5x (Tidak Memenuhi)' }}</div>
             </div>
 
           </div>

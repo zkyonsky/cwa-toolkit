@@ -31,13 +31,13 @@ class IndicativeRatingService
      */
     public function hitungKategoriPDRB(float $pdrb): array
     {
-        if ($pdrb >= 91)
+        if ($pdrb > 90)
             $rasio = 5;
-        elseif ($pdrb >= 51)
+        elseif ($pdrb > 50)
             $rasio = 4;
-        elseif ($pdrb >= 38)
+        elseif ($pdrb > 37)
             $rasio = 3;
-        elseif ($pdrb >= 28)
+        elseif ($pdrb > 27)
             $rasio = 2;
         else
             $rasio = 1;
@@ -53,9 +53,9 @@ class IndicativeRatingService
      */
     public function hitungKonsentrasiPDRB(float $pdrb): string
     {
-        if ($pdrb >= 2500)
+        if ($pdrb > 2500)
             return "Tinggi";
-        if ($pdrb >= 1500)
+        if ($pdrb > 1500)
             return "Sedang";
         return "Rendah";
     }
@@ -69,7 +69,7 @@ class IndicativeRatingService
      */
     public function hitungPerbandinganPDRB(float $pdrb, float $pdb_indonesia): string
     {
-        return $pdrb < (1.1 * $pdb_indonesia) ? "Dibawah Nasional" : "Sama atau lebih tinggi dibanding Nasional";
+        return $pdrb < (0.9 * $pdb_indonesia) ? "Dibawah Nasional" : "Sama atau lebih tinggi dibanding Nasional";
     }
 
     /**
@@ -80,13 +80,13 @@ class IndicativeRatingService
      */
     public function hitungKategoriTingkatPengangguran(float $pengangguran): array
     {
-        if ($pengangguran < 2)
+        if ($pengangguran <= 2)
             $rasio = 5;
-        elseif ($pengangguran < 4)
+        elseif ($pengangguran <= 4)
             $rasio = 4;
-        elseif ($pengangguran < 6)
+        elseif ($pengangguran <= 6)
             $rasio = 3;
-        elseif ($pengangguran < 8)
+        elseif ($pengangguran <= 8)
             $rasio = 2;
         else
             $rasio = 1;
@@ -102,13 +102,13 @@ class IndicativeRatingService
      */
     public function hitungKategoriIPM(float $ipm): array
     {
-        if ($ipm >= 79)
+        if ($ipm > 78)
             $rasio = 5;
-        elseif ($ipm >= 75)
+        elseif ($ipm > 74)
             $rasio = 4;
-        elseif ($ipm >= 72)
+        elseif ($ipm > 71)
             $rasio = 3;
-        elseif ($ipm >= 67)
+        elseif ($ipm > 66)
             $rasio = 2;
         else
             $rasio = 1;
@@ -125,13 +125,13 @@ class IndicativeRatingService
     public function hitungPadPendapatan(float $pad_pendapatan): array
     {
         $val = $pad_pendapatan;
-        if ($val >= 24)
+        if ($val > 0.23)
             $rasio = 5;
-        elseif ($val >= 14)
+        elseif ($val > 0.13)
             $rasio = 4;
-        elseif ($val >= 9)
+        elseif ($val > 0.08)
             $rasio = 3;
-        elseif ($val >= 6)
+        elseif ($val > 0.05)
             $rasio = 2;
         else
             $rasio = 1;
@@ -159,12 +159,14 @@ class IndicativeRatingService
     public function hitungOperasiPendapatan(float $operasi_pendapatan): array
     {
         $val = $operasi_pendapatan;
-        if ($val >= 43)
+        if ($val > 0.42)
             $rasio = 5;
-        elseif ($val >= 36)
+        elseif ($val > 0.35)
             $rasio = 4;
-        elseif ($val >= 29)
+        elseif ($val > 0.28)
             $rasio = 3;
+        elseif ($val > 0)
+            $rasio = 2;
         else
             $rasio = 1;
 
@@ -180,13 +182,13 @@ class IndicativeRatingService
     public function hitungBelanjaModal(float $belanja_modal): array
     {
         $val = $belanja_modal;
-        if ($val >= 31)
+        if ($val > 0.3)
             $rasio = 5;
-        elseif ($val >= 24)
+        elseif ($val > 0.23)
             $rasio = 4;
-        elseif ($val >= 20)
+        elseif ($val > 0.19)
             $rasio = 3;
-        elseif ($val >= 16)
+        elseif ($val > 0.15)
             $rasio = 2;
         else
             $rasio = 1;
@@ -203,13 +205,13 @@ class IndicativeRatingService
     public function hitungPegawaiBelanja(float $pegawai_belanja): array
     {
         $val = $pegawai_belanja;
-        if ($val < 32)
+        if ($val <= 0.32)
             $rasio = 5;
-        elseif ($val < 40)
+        elseif ($val <= 0.40)
             $rasio = 4;
-        elseif ($val < 45)
+        elseif ($val <= 0.45)
             $rasio = 3;
-        elseif ($val < 52)
+        elseif ($val <= 0.52)
             $rasio = 2;
         else
             $rasio = 1;
@@ -249,13 +251,13 @@ class IndicativeRatingService
     public function hitungUtangPdrb(float $utang_pdrb): array
     {
         $val = $utang_pdrb;
-        if ($val < 0.07)
+        if ($val = 0)
             $rasio = 5;
-        elseif ($val < 0.21)
+        elseif ($val < 0.004)
             $rasio = 4;
-        elseif ($val < 25)
+        elseif ($val < 0.01)
             $rasio = 3;
-        elseif ($val < 60)
+        elseif ($val < 0.03)
             $rasio = 2;
         else
             $rasio = 1;
@@ -272,13 +274,13 @@ class IndicativeRatingService
     public function hitungUtangPendapatan(float $utang_pendapatan): array
     {
         $val = $utang_pendapatan;
-        if ($val < 0.6)
+        if ($val = 0)
             $rasio = 5;
-        elseif ($val < 6)
+        elseif ($val < 0.1)
             $rasio = 4;
-        elseif ($val < 45)
+        elseif ($val < 0.2)
             $rasio = 3;
-        elseif ($val < 75)
+        elseif ($val < 0.35)
             $rasio = 2;
         else
             $rasio = 1;

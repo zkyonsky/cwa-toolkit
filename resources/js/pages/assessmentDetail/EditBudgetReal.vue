@@ -282,7 +282,7 @@ watch(() => form.budgetReals, recalculateBudgetReals, { deep: true });
 
     <Head title="Edit Budget Real" />
 
-    <AssessmentStepper :assessment-id="assessment.id" :current-step="3" />
+    <AssessmentStepper :assessment-id="assessment.id" :current-step="4" />
 
     <div class="container mx-auto p-4 space-y-6">
         <div class="flex items-center justify-between mb-6">

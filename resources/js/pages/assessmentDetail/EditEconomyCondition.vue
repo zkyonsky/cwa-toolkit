@@ -255,7 +255,7 @@ const topSectors = computed(() => {
 
     <Head title="Kondisi Ekonomi Daerah" />
 
-    <AssessmentStepper :assessment-id="assessment.id" :current-step="5" />
+    <AssessmentStepper :assessment-id="assessment.id" :current-step="6" />
 
     <!-- MAIN CONTENT -->
     <div class="p-6 bg-gray-50 min-h-screen font-sans">
