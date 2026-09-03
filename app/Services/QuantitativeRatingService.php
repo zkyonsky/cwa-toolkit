@@ -72,9 +72,9 @@ class QuantitativeRatingService
         // Tentukan peringkat berdasarkan kriteria skor
         $peringkat = match (true) {
             $skor_kuantitatif >= 385 => 1,
-            $skor_kuantitatif >= 340 => 2,
+            $skor_kuantitatif >= 350 => 2,
             $skor_kuantitatif >= 300 => 3,
-            $skor_kuantitatif >= 260 => 4,
+            $skor_kuantitatif >= 160 => 4,
             default => 5,
         };
 

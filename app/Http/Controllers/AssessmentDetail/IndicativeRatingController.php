@@ -121,7 +121,7 @@ class IndicativeRatingController extends Controller
         // Tujuan: Menentukan kategori fiskal daerah untuk menyesuaikan skor rating.
         // Sumber Parameter: Field fiscal_capacity dari model Financial_indicator.
         // Diproses di: QuantitativeRatingService->calculate() -> kapasitasFiskal()
-        $katKapasitasFiskal = !empty($financialIndicator->fiscal_capacity) ? $financialIndicator->fiscal_capacity : "Sedang";
+        $katKapasitasFiskal = !empty($financialIndicator->fiscal_capacity) ? $financialIndicator->fiscal_capacity : "Sangat Rendah";
 
         // Perhitungan: Kualitas Pencatatan Keuangan (Opini BPK)
         // Tujuan: Mengevaluasi kualitas pencatatan dari riwayat opini WTP dan WDP dari BPK 3 tahun terakhir.
@@ -131,7 +131,7 @@ class IndicativeRatingController extends Controller
         $budgetReals = $gov->budget_real()->whereIn('year', $years)->get();
         $wtpCount = $budgetReals->where('bpk_opinion', 'WTP')->count();
         $wdpCount = $budgetReals->where('bpk_opinion', 'WDP')->count();
-        $syaratMinimum = ($wdpCount >= 3 || $wtpCount >= 3) ? 'Memenuhi syarat minimum' : 'Tidak memenuhi syarat minimum';
+        $syaratMinimum = ($wdpCount + $wtpCount >= 3) ? 'Memenuhi syarat minimum' : 'Tidak memenuhi syarat minimum';
 
         $ratingResult = $quantService->calculate(
             $skorPerkapita,

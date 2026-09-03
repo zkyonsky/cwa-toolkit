@@ -297,13 +297,13 @@ class IndicativeRatingService
     public function hitungDsPendapatan(float $ds_pendapatan): array
     {
         $val = $ds_pendapatan;
-        if ($val < 0.48)
+        if ($val < 0.10)
             $rasio = 5;
-        elseif ($val < 18.12)
+        elseif ($val < 0.20)
             $rasio = 4;
-        elseif ($val < 28)
+        elseif ($val < 0.35)
             $rasio = 3;
-        elseif ($val < 63)
+        elseif ($val < 0.75)
             $rasio = 2;
         else
             $rasio = 1;
@@ -320,11 +320,11 @@ class IndicativeRatingService
     public function hitungDscr(float $dscr): array
     {
         $val = $dscr;
-        if ($val >= 12.1)
+        if ($val > 12)
             $rasio = 5;
-        elseif ($val >= 2.6)
+        elseif ($val > 2.5)
             $rasio = 3;
-        elseif ($val >= 1.1)
+        elseif ($val > 1)
             $rasio = 2;
         else
             $rasio = 1;
@@ -338,16 +338,16 @@ class IndicativeRatingService
      * @param float $fiscal_ratio Indeks Kapasitas Fiskal dalam bentuk desimal (Berasal dari perhitungan internal indeks fiskal)
      * @return string Kategori Kapasitas Fiskal (Sangat Tinggi/Tinggi/Sedang/Rendah/Sangat Rendah)
      */
-    public function hitungKapasitasFiskal(float $fiscal_ratio): string
-    {
-        if ($fiscal_ratio >= 1)
-            return 'Sangat Tinggi';
-        if ($fiscal_ratio >= 0.75)
-            return 'Tinggi';
-        if ($fiscal_ratio >= 0.5)
-            return 'Sedang';
-        if ($fiscal_ratio >= 0.25)
-            return 'Rendah';
-        return 'Sangat Rendah';
-    }
+    // public function hitungKapasitasFiskal(float $fiscal_ratio): string
+    // {
+    //     if ($fiscal_ratio >= 1)
+    //         return 'Sangat Tinggi';
+    //     if ($fiscal_ratio >= 0.75)
+    //         return 'Tinggi';
+    //     if ($fiscal_ratio >= 0.5)
+    //         return 'Sedang';
+    //     if ($fiscal_ratio >= 0.25)
+    //         return 'Rendah';
+    //     return 'Sangat Rendah';
+    // }
 }
