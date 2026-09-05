@@ -44,7 +44,8 @@ const props = defineProps<{
 let parsedInfo = {
     pengalaman_jabatan: Array.from({ length: 4 }, () => ({ jabatan: '', tahun: '', ket: '' })),
     instansi_tlp: '',
-    data_tambahan: [{ key: '', value: '' }]
+    data_tambahan: [{ key: '', value: '' }],
+    catatan: ''
 };
 
 if (props.assessment.info) {
@@ -58,6 +59,9 @@ if (props.assessment.info) {
         }
         if (infoObj.data_tambahan && infoObj.data_tambahan.length > 0) {
             parsedInfo.data_tambahan = infoObj.data_tambahan;
+        }
+        if (infoObj.catatan !== undefined) {
+            parsedInfo.catatan = infoObj.catatan;
         }
     } catch (e) {
         console.error("Failed to parse info", e);
@@ -73,6 +77,7 @@ const form = useForm({
     result: props.assessment.result || '',
     position: props.assessee.position || '',
     contact: props.assessee.contact || '',
+    address: props.assessee.address || '',
 });
 
 
@@ -205,8 +210,9 @@ const isUser = computed(() => {
                                 class="border border-gray-300 bg-teal-500 text-white font-semibold px-2 py-1 align-top">
                                 Instansi saat ini</td>
                             <td class="border border-gray-300 bg-teal-100/50 font-bold px-2 py-1">Alamat:</td>
-                            <td colspan="2" class="border border-gray-300 bg-gray-50 px-2 py-1 leading-snug">
-                                {{ props.assessee.address }}
+                            <td colspan="2" class="border border-gray-300 bg-gray-50 p-0">
+                                <input v-model="form.address" type="text"
+                                    class="w-full bg-transparent border-0 px-2 py-1 outline-none focus:ring-0 text-sm">
                             </td>
                         </tr>
                         <tr>
@@ -263,7 +269,7 @@ const isUser = computed(() => {
                         <tr>
                             <td colspan="4" class="border border-gray-300 bg-gray-100 p-2 align-top h-32 relative">
                                 <div class="font-bold text-sm mb-1">Catatan:</div>
-                                <textarea v-model="form.result"
+                                <textarea v-model="infoData.catatan"
                                     class="w-full h-24 bg-transparent border-0 p-0 outline-none focus:ring-0 text-sm resize-none"></textarea>
                             </td>
                         </tr>

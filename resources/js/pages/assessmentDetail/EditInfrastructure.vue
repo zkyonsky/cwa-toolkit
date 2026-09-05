@@ -131,6 +131,12 @@ const handlePriorityCurrencyInput = (e: Event, index: number, field: string) => 
     const input = e.target as HTMLInputElement;
     const num = parseNumber(input.value);
     (form.priorities[index] as any)[field] = num;
+
+    if (field === 'estimated_cost' || field === 'fund_source') {
+        const cost = Number(form.priorities[index].estimated_cost) || 0;
+        const source = Number(form.priorities[index].fund_source) || 0;
+        form.priorities[index].alt_fund_need = cost - source;
+    }
 };
 
 const handlePriorityCurrencyBlur = (e: FocusEvent, index: number, field: string) => {
@@ -138,6 +144,12 @@ const handlePriorityCurrencyBlur = (e: FocusEvent, index: number, field: string)
     const num = parseNumber(input.value);
     (form.priorities[index] as any)[field] = num;
     input.value = formatCurrency(num);
+
+    if (field === 'estimated_cost' || field === 'fund_source') {
+        const cost = Number(form.priorities[index].estimated_cost) || 0;
+        const source = Number(form.priorities[index].fund_source) || 0;
+        form.priorities[index].alt_fund_need = cost - source;
+    }
 };
 </script>
 

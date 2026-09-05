@@ -465,7 +465,7 @@ const topSectors = computed(() => {
                             <tr class="bg-[#c0c0c0] font-bold">
                                 <td class="p-1">Total</td>
                                 <td class="p-1 text-right border border-[#5d9b9b]">{{ formatNumber(totalGdp) }}</td>
-                                <td class="p-1 border border-white"></td>
+                                <td class="p-1 text-right border border-white">{{ formatNumber(Object.values(sectorPercentages).reduce((acc, val) => acc + val, 0)) }}%</td>
                             </tr>
                         </tbody>
                     </table>

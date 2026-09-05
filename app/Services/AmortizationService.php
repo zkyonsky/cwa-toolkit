@@ -22,6 +22,26 @@ class AmortizationService
         // 1. Perhitungan Dasar & Parameter Simulasi
         $totalMonths = (int)$tenorPinjaman; 
         $apMonths = (int)$masaPencairan;
+        
+        if ($totalMonths <= 0 || $apMonths <= 0 || empty($tglMulai)) {
+            return [
+                'parameter' => [
+                    'total_plafon'      => $plafon,
+                    'masa_pencairan'    => $apMonths . " bulan",
+                    'pencairan_bulanan' => 0,
+                    'biaya_provisi'     => 0,
+                    'total_bunga'       => 0,
+                ],
+                'jadwal_lengkap'        => [],
+                'hasil_cicilan' => [
+                    'cicilan_per_bulan'  => 0,
+                    'rata_pokok_tahunan' => 0,
+                    'rata_bunga_tahunan' => 0,
+                    'total_bayar_akhir'  => 0,
+                    'tanggal_cicilan_1'  => null
+                ]
+            ];
+        }
         $graceMonths = 6; // Masa Tenggang setelah AP selesai sebelum Pokok dimulai (berdasarkan tabel)
         $repaymentMonths = $totalMonths - $apMonths - $graceMonths;
         
@@ -29,6 +49,10 @@ class AmortizationService
             // Fallback jika tenor terlalu pendek
             $graceMonths = 0;
             $repaymentMonths = $totalMonths - $apMonths;
+        }
+
+        if ($repaymentMonths <= 0) {
+            $repaymentMonths = 1; // Prevent division by zero
         }
 
         $pencairanPerBulan = $plafon / $apMonths;
@@ -115,7 +139,7 @@ class AmortizationService
                 'rata_pokok_tahunan' => round($rataPokokTahunan, 2),
                 'rata_bunga_tahunan' => round($rataBungaTahunan, 2),
                 'total_bayar_akhir'  => round($plafon + $totalBunga + $biayaProvisi, 2),
-                'tanggal_cicilan_1'  => $schedule[$apMonths + $graceMonths]['tgl_awal'] // Kapan pokok mulai dibayar
+                'tanggal_cicilan_1'  => isset($schedule[$apMonths + $graceMonths]['tgl_awal']) ? $schedule[$apMonths + $graceMonths]['tgl_awal'] : null // Kapan pokok mulai dibayar
             ]
         ];
     }

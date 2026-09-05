@@ -75,6 +75,7 @@ class AssessmentController extends Controller
             "result" => "nullable|string",
             "position" => "nullable|string",
             "contact" => "nullable|string",
+            "address" => "nullable|string",
         ]);
 
         $assessment->update([
@@ -86,6 +87,7 @@ class AssessmentController extends Controller
         $assesseeUpdate = array_filter([
             'position' => $data['position'] ?? null,
             'contact'  => $data['contact']  ?? null,
+            'address'  => $data['address']  ?? null,
         ], fn($v) => !is_null($v));
 
         if (!empty($assesseeUpdate)) {

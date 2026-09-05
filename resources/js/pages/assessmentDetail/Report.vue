@@ -71,6 +71,12 @@ const formatPercent = (val: number) => {
     return val.toFixed(2) + '%';
 };
 
+const formatDateID = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
 // Data padding logic to always have 3 columns for Budget Reals
 const paddedBudgetReals = computed(() => {
     const defaultData = {
@@ -139,16 +145,21 @@ const rasioBelanjaPegawai = computed(() => {
 const getKemandirianInsight = () => {
     const val = rasioPad.value[rasioPad.value.length - 1];
     if (val === null || val === undefined) return '-';
-    if (val < 10) return 'Kemandirian anggaran rendah sekali';
-    if (val < 30) return 'Kemandirian anggaran rendah';
-    if (val < 50) return 'Kemandirian anggaran sedang';
+    if (val < 25) return 'Kemandirian anggaran rendah sekali';
+    if (val < 50) return 'Kemandirian anggaran rendah';
+    if (val < 75) return 'Kemandirian anggaran sedang';
     return 'Kemandirian anggaran tinggi';
 };
 
 const getTransferInsight = () => {
-    const val = rasioTransfer.value[rasioTransfer.value.length - 1];
-    if (val === null || val === undefined) return '-';
-    if (val > 50) return 'Ketergantungan pada transfer meningkat';
+    const validData = rasioTransfer.value.filter(v => v !== null && v !== undefined);
+    if (validData.length < 2) return '-';
+    const firstYearVal = validData[0];
+    const lastYearVal = validData[validData.length - 1];
+    if (firstYearVal === 0) return '-';
+    
+    const calculation = (lastYearVal / firstYearVal) - 1;
+    if (calculation > 0) return 'Ketergantungan pada transfer meningkat';
     return 'Ketergantungan pada transfer menurun';
 };
 
@@ -160,14 +171,20 @@ const getLainInsight = () => {
 };
 
 const getPadGrowthInsight = () => {
-    return 'Pertumbuhan PAD 2 tahun terakhir stabil'; // Hardcoded simplification
+    const val = props.financialIndicator?.volatil_pad;
+    if (val === null || val === undefined) return '-';
+    if (val > 50) return 'Pertumbuhan PAD 2 tahun terakhir volatil';
+    return 'Pertumbuhan PAD 2 tahun terakhir stabil';
 };
 
 const getSurplusOperasiInsight = () => {
     const val = rasioSurplusOperasi.value[rasioSurplusOperasi.value.length - 1];
     if (val === null || val === undefined) return '-';
-    if (val < 0) return 'Rendah dibanding pemerintah Kabupaten/Kota di Indonesia';
-    return 'Baik dibanding pemerintah Kabupaten/Kota di Indonesia';
+    if (val > 42) return 'Sangat Tinggi';
+    if (val > 35) return 'Tinggi';
+    if (val > 28) return 'Rata-rata/Sedang';
+    if (val > 0) return 'Rendah';
+    return 'Sangat Rendah';
 };
 
 const getSurplusNetInsight = () => {
@@ -180,16 +197,52 @@ const getSurplusNetInsight = () => {
 const getBelanjaModalInsight = () => {
     const val = rasioBelanjaModal.value[rasioBelanjaModal.value.length - 1];
     if (val === null || val === undefined) return '-';
-    if (val < 10) return 'Sangat rendah dibanding pemerintah Kabupaten/Kota di Indonesia';
-    if (val < 20) return 'Rendah dibanding pemerintah Kabupaten/Kota di Indonesia';
-    return 'Rata-rata/ Sedang dibanding pemerintah Kabupaten/Kota di Indonesia';
+    if (val > 30) return 'Sangat Tinggi';
+    if (val > 23) return 'Tinggi';
+    if (val > 19) return 'Rata-rata/Sedang';
+    if (val > 15) return 'Rendah';
+    return 'Sangat Rendah';
 };
 
 const getBelanjaPegawaiInsight = () => {
     const val = rasioBelanjaPegawai.value[rasioBelanjaPegawai.value.length - 1];
     if (val === null || val === undefined) return '-';
-    if (val > 45) return 'Tinggi dibanding pemerintah Kabupaten/Kota di Indonesia';
-    return 'Rata-rata/ Sedang dibanding pemerintah Kabupaten/Kota di Indonesia';
+    if (val <= 32) return 'Sangat Rendah';
+    if (val <= 40) return 'Rendah';
+    if (val <= 45) return 'Rata-rata/Sedang';
+    if (val <= 52) return 'Tinggi';
+    return 'Sangat Tinggi';
+};
+
+const getPadTigaTahunInsight = () => {
+    const rawVal = props.financialIndicator?.pad_last_three_year;
+    if (rawVal === null || rawVal === undefined) return '-';
+    const val = rawVal;
+    if (val >= 151) return 'Sangat Tinggi';
+    if (val >= 111) return 'Tinggi';
+    if (val >= 91) return 'Rata-rata/Sedang';
+    if (val >= 51) return 'Rendah';
+    return 'Sangat Rendah';
+};
+
+const getUtangPdrbInsight = () => {
+    const rawVal = props.financialIndicator?.debt_gdp;
+    if (rawVal === null || rawVal === undefined) return '-';
+    if (rawVal === 0) return 'Sangat Rendah';
+    if (rawVal < 0.4) return 'Rendah';
+    if (rawVal < 1) return 'Rata-rata/Sedang';
+    if (rawVal < 3) return 'Tinggi';
+    return 'Sangat Tinggi';
+};
+
+const getUtangPendapatanInsight = () => {
+    const rawVal = props.financialIndicator?.debt_revenue;
+    if (rawVal === null || rawVal === undefined) return '-';
+    if (rawVal === 0) return 'Sangat Rendah';
+    if (rawVal < 10) return 'Rendah';
+    if (rawVal < 20) return 'Rata-rata/Sedang';
+    if (rawVal < 35) return 'Tinggi';
+    return 'Sangat Tinggi';
 };
 
 // Charts configuration
@@ -285,7 +338,7 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
             <div class="bg-teal-600 text-white text-center py-8 print:bg-teal-600 print:-webkit-print-color-adjust: exact; print:color-adjust: exact;">
                 <h1 class="text-3xl font-bold">Laporan Hasil Assessment</h1>
                 <p class="text-teal-100 mt-2 text-lg font-medium">{{ assessment.assessee?.gov?.name || 'Pemda Tidak Diketahui' }}</p>
-                <p class="text-teal-200 text-sm mt-1">Tanggal Assessment: {{ assessment.date }}</p>
+                <p class="text-teal-200 text-sm mt-1">Tanggal Assessment: {{ formatDateID(assessment.date) }} | Oleh : {{ assessment.assessee?.user?.name || '-' }}</p>
             </div>
 
             <div class="p-8 space-y-10">
@@ -318,8 +371,8 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                         </div>
                     </div>
 
-                    <div class="w-full overflow-x-auto mb-6">
-                        <table class="w-full text-left border-collapse border border-gray-300">
+                    <div class="w-full overflow-x-auto mb-6 print:overflow-hidden">
+                        <table class="w-full text-left border-collapse border border-gray-300 print:text-xs">
                             <thead>
                                 <tr class="bg-gray-100">
                                     <th class="border border-gray-300 p-2 w-1/3"></th>
@@ -345,39 +398,39 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                 <tr>
                                     <td class="border border-gray-300 p-2">PAD</td>
                                     <td v-for="(val, index) in pad" :key="'pad'+index" class="border border-gray-300 p-2 text-right font-semibold">{{ formatCurrency(val) }}</td>
-                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getKemandirianInsight() }}</td>
+                                    <!-- <td class="pl-4 text-xs text-gray-600 italic">{{ getKemandirianInsight() }}</td> -->
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2">Pertumbuhan PAD</td>
                                     <td v-for="(val, index) in padGrowth" :key="'padg'+index" class="border border-gray-300 p-2 text-right font-bold">{{ formatPercent(val) }}</td>
-                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getTransferInsight() }}</td>
+                                    <!-- <td class="pl-4 text-xs text-gray-600 italic">{{ getTransferInsight() }}</td> -->
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2">Rasio PAD per Pendapatan Total (%)</td>
                                     <td v-for="(val, index) in rasioPad" :key="'rpad'+index" class="border border-gray-300 p-2 text-right font-bold">{{ formatPercent(val) }}</td>
-                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getLainInsight() }}</td>
+                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getKemandirianInsight() }}</td>
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2">Rasio Pendapatan Transfer per Pendapatan Total (%)</td>
                                     <td v-for="(val, index) in rasioTransfer" :key="'rtrans'+index" class="border border-gray-300 p-2 text-right font-bold">{{ formatPercent(val) }}</td>
-                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getPadGrowthInsight() }}</td>
+                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getTransferInsight() }}</td>
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2">Rasio Pendapatan Lain-lain yang Sah per Pendapatan Total (%)</td>
                                     <td v-for="(val, index) in rasioLain" :key="'rlain'+index" class="border border-gray-300 p-2 text-right font-bold">{{ formatPercent(val) }}</td>
-                                    <td></td>
+                                    <!-- <td></td> -->
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2">Volatilitas pertumbuhan PAD (selisih pertumbuhan PAD) (%)</td>
                                     <td colspan="3" class="border border-gray-300 p-2 text-center font-bold">{{ financialIndicator?.volatil_pad ? formatPercent(financialIndicator.volatil_pad) : '-' }}</td>
-                                    <td></td>
+                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getPadGrowthInsight() }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Charts row 1 -->
-                    <div v-if="hasChartData" class="grid grid-cols-2 gap-6 mb-8 print:break-inside-avoid">
+                    <div v-if="hasChartData" class="grid grid-cols-2 gap-6 mb-8 print:grid-cols-1 print:break-inside-avoid">
                         <div class="border border-gray-300 p-4 rounded bg-white">
                             <h4 class="text-center font-semibold mb-2">Kemandirian Anggaran</h4>
                             <div class="h-[250px]"><Bar :data="autonomyChartDataConf" :options="autonomyChartOptionsConf" /></div>
@@ -390,8 +443,8 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                     </div>
 
                     <!-- Kemampuan Memperoleh Penghasilan -->
-                    <div class="w-full overflow-x-auto mb-6 print:break-inside-avoid">
-                        <table class="w-full text-left border-collapse border border-gray-300">
+                    <div class="w-full overflow-x-auto mb-6 print:overflow-hidden print:break-inside-avoid">
+                        <table class="w-full text-left border-collapse border border-gray-300 print:text-xs">
                             <thead>
                                 <tr><th colspan="5" class="p-2 font-bold">Kemampuan memperoleh penghasilan untuk menutupi belanja</th></tr>
                             </thead>
@@ -404,14 +457,14 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                 <tr>
                                     <td class="border border-gray-300 p-2">Rasio Surplus/Defisit Sebelum Pembiayaan (%)</td>
                                     <td v-for="(val, index) in rasioSurplusNet" :key="'surp_net'+index" class="border border-gray-300 p-2 text-right font-bold">{{ formatPercent(val) }}</td>
-                                    <td class="pl-4 text-xs text-gray-600 italic">{{ getSurplusNetInsight() }}</td>
+                                    <!-- <td class="pl-4 text-xs text-gray-600 italic">{{ getSurplusNetInsight() }}</td> -->
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     
                     <!-- Chart row 2 -->
-                    <div v-if="hasChartData" class="w-1/2 mb-8 pr-3 print:break-inside-avoid">
+                    <div v-if="hasChartData" class="w-1/2 mb-8 pr-3 print:w-full print:pr-0 print:break-inside-avoid">
                         <div class="border border-gray-300 p-4 rounded bg-white">
                             <h4 class="text-center font-semibold mb-2">Kemampuan Memperoleh Penghasilan</h4>
                             <div class="h-[250px]"><Bar :data="surplusChartDataConf" :options="surplusChartOptionsConf" /></div>
@@ -419,8 +472,8 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                     </div>
 
                     <!-- Efektivitas Belanja -->
-                    <div class="w-full overflow-x-auto mb-6 print:break-inside-avoid">
-                        <table class="w-full text-left border-collapse border border-gray-300">
+                    <div class="w-full overflow-x-auto mb-6 print:overflow-hidden print:break-inside-avoid">
+                        <table class="w-full text-left border-collapse border border-gray-300 print:text-xs">
                             <thead>
                                 <tr><th colspan="5" class="p-2 font-bold">Efektivitas belanja</th></tr>
                             </thead>
@@ -440,7 +493,7 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                     </div>
                     
                     <!-- Chart row 3 -->
-                    <div v-if="hasChartData" class="w-1/2 mb-8 pr-3 print:break-inside-avoid">
+                    <div v-if="hasChartData" class="w-1/2 mb-8 pr-3 print:w-full print:pr-0 print:break-inside-avoid">
                         <div class="border border-gray-300 p-4 rounded bg-white">
                             <h4 class="text-center font-semibold mb-2">Efektivitas Belanja</h4>
                             <div class="h-[250px]"><Bar :data="spendingChartDataConf" :options="spendingChartOptionsConf" /></div>
@@ -454,9 +507,9 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                 <tr><td colspan="5" class="p-2 font-bold pt-4 block">Kualitas penyusunan anggaran</td></tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2 w-1/3">Rata-rata realisasi PAD 3 tahun terakhir (%)</td>
-                                    <td class="border border-gray-300 p-2 bg-orange-100 text-right w-1/6 font-semibold">{{ formatPercent(financialIndicator?.pad_last_three_year) }}</td>
+                                    <td class="border border-gray-300 p-2 bg-orange-100 text-right w-1/6 font-semibold">{{ (financialIndicator?.pad_last_three_year !== null && financialIndicator?.pad_last_three_year !== undefined) ? formatPercent(financialIndicator.pad_last_three_year) : '-' }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
-                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">Lebih rendah dibanding anggaran</td>
+                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">{{ getPadTigaTahunInsight() }}</td>
                                 </tr>
 
                                 <tr><td colspan="5" class="p-2 font-bold pt-4 block">Beban Utang</td></tr>
@@ -464,19 +517,19 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                     <td class="border border-gray-300 p-2 w-1/3">Total utang</td>
                                     <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ formatCurrency(financialIndicator?.total_debt) }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
-                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6"></td>
+                                    <!-- <td class="pl-4 text-xs text-gray-600 italic w-1/6"></td> -->
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2 w-1/3">Rasio total utang per PDRB harga berlaku (%)</td>
-                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ formatPercent(financialIndicator?.debt_gdp) }}</td>
+                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ (financialIndicator?.debt_gdp !== null && financialIndicator?.debt_gdp !== undefined) ? formatPercent(financialIndicator.debt_gdp) : '-' }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
-                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">Rata-rata/ Sedang</td>
+                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">{{ getUtangPdrbInsight() }}</td>
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2 w-1/3">Rasio total utang per pendapatan umum (%)</td>
-                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ formatPercent(financialIndicator?.debt_revenue) }}</td>
+                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ (financialIndicator?.debt_revenue !== null && financialIndicator?.debt_revenue !== undefined) ? formatPercent(financialIndicator.debt_revenue) : '-' }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
-                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">Rendah</td>
+                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">{{ getUtangPendapatanInsight() }}</td>
                                 </tr>
 
                                 <tr><td colspan="5" class="p-2 font-bold pt-4 block">Likuiditas (sepanjang tenor pinjaman)</td></tr>
@@ -484,7 +537,7 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                     <td class="border border-gray-300 p-2 w-1/3">Debt Service / Pendapatan total (%)</td>
                                     <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ formatPercent(financialIndicator?.ds_revenue) }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
-                                    <td class="pl-4 text-xs text-gray-600 italic w-1/6">Rata-rata/ Sedang</td>
+                                    <!-- <td class="pl-4 text-xs text-gray-600 italic w-1/6">Rata-rata/ Sedang</td> -->
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2 w-1/3">DSCR</td>

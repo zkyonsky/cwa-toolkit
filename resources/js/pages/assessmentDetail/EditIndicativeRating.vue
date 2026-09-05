@@ -23,6 +23,7 @@ const props = defineProps({
   selfAssessment: Object as () => any,
   ratingResult: Object as () => any, // From QuantitativeRatingService
   indicativeRating: String, // Pre-calculated label from backend
+  calculationDetails: Object as () => any,
 });
 
 const form = useForm({
@@ -123,6 +124,157 @@ const formatNumber = (val: number) => {
         </div>
 
         <form @submit.prevent="submit" class="p-6 space-y-6">
+
+      <!-- Calculation Details Section -->
+      <div v-if="calculationDetails" class="space-y-6">
+        <!-- Aspek Ekonomi -->
+        <div>
+          <h2 class="text-lg font-bold bg-[#d4e4f7] px-3 py-1 mb-2">Aspek Ekonomi</h2>
+          <table class="w-full border-collapse text-xs">
+            <tbody>
+              <tr><td colspan="4" class="font-bold py-1">PDRB</td></tr>
+              <tr>
+                <td class="w-1/2 py-1 pl-4">PDRB HB per Kapita (Ribu Rupiah)</td>
+                <td class="w-32"><Input :model-value="formatNumber(calculationDetails.ekonomi.pdrb_per_kapita.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="w-48 px-2 text-orange-600">{{ calculationDetails.ekonomi.pdrb_per_kapita.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Tingkat konsentrasi PDRB</td>
+                <td><Input :model-value="formatNumber(calculationDetails.ekonomi.konsentrasi_pdrb.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.ekonomi.konsentrasi_pdrb.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Pertumbuhan PDRB harga konstan (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.ekonomi.pertumbuhan_pdrb.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2"></td>
+              </tr>
+              <!-- <tr>
+                <td class="py-1 pl-4">PDB Indonesia</td>
+                <td><Input :model-value="formatNumber(calculationDetails.ekonomi.pdb_indonesia.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.ekonomi.pdb_indonesia.label }}</td>
+              </tr> -->
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Tingkat Pengangguran</td></tr>
+              <tr>
+                <td class="py-1 pl-4">% Tingkat pengangguran</td>
+                <td><Input :model-value="formatNumber(calculationDetails.ekonomi.pengangguran.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.ekonomi.pengangguran.label }}</td>
+              </tr>
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Kualitas Pembangunan Daerah</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Indeks Pembangunan Manusia</td>
+                <td><Input :model-value="formatNumber(calculationDetails.ekonomi.ipm.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.ekonomi.ipm.label }}</td>
+              </tr>
+              <!-- <tr>
+                <td colspan="4" class="font-bold py-1 pt-4">Rata-rata skor terbobot</td>
+              </tr> -->
+              <!-- <tr>
+                <td colspan="4" class="font-bold py-1 pt-4">Kondisi keuangan lain yang tidak terwakili pada parameter rating namun berpengaruh signifikan pada Pemda</td>
+              </tr>
+              <tr>
+                <td class="py-1">
+                  <div class="h-6 bg-orange-200 border border-gray-400"></div>
+                </td>
+                <td class="text-right pr-2">Notching skor</td>
+                <td class="px-2"><Input model-value="Tanpa Pengurangan" class="h-6 text-orange-600" readonly /></td>
+              </tr> -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Aspek Keuangan -->
+        <div>
+          <h2 class="text-lg font-bold bg-[#d4e4f7] px-3 py-1 mb-2">Aspek Keuangan</h2>
+          <table class="w-full border-collapse text-xs">
+            <tbody>
+              <tr><td colspan="4" class="font-bold py-1">Kemandirian Anggaran</td></tr>
+              <tr>
+                <td class="w-1/2 py-1 pl-4">Rasio PAD per Pendapatan Total (%)</td>
+                <td class="w-32"><Input :model-value="formatNumber(calculationDetails.keuangan.pad_pendapatan.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="w-48 px-2 text-orange-600">{{ calculationDetails.keuangan.pad_pendapatan.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Volatilitas pertumbuhan PAD (selisih pertumbuhan PAD) (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.volatilitas_pad.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.volatilitas_pad.label }}</td>
+              </tr>
+              
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Kemampuan memperoleh penghasilan untuk menutupi belanja</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Rasio Surplus/Defisit Operasi per Pendapatan Total (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.operasi_pendapatan.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.operasi_pendapatan.label }}</td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Efektivitas belanja</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Rasio Belanja Modal per Total belanja (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.belanja_modal.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.belanja_modal.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Rasio Belanja Pegawai per Total Belanja (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.belanja_pegawai.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.belanja_pegawai.label }}</td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Kualitas penyusunan anggaran</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Rata-rata realisasi PAD 3 tahun terakhir (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.pad_tiga_tahun.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.pad_tiga_tahun.label }}</td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Beban Utang</td></tr>
+              <tr><td colspan="4" class="font-bold py-1 pl-4 text-gray-700">Total utang kepada Pemerintah; Lembaga Keuangan (bank dan non-bank); serta obligasi</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Rasio total utang per PDRB harga berlaku (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.utang_pdrb.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.utang_pdrb.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Rasio total utang per pendapatan umum (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.utang_pendapatan.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.utang_pendapatan.label }}</td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Likuiditas (sepanjang tenor pinjaman)</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Debt Service / Pendapatan total (%)</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.ds_pendapatan.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.ds_pendapatan.label }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">DSCR</td>
+                <td><Input :model-value="formatNumber(calculationDetails.keuangan.dscr.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.dscr.label }}</td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Kapasitas fiskal</td></tr>
+              <tr>
+                <td class="py-1 pl-4">Kapasitas Fiskal</td>
+                <td colspan="2"><Input :model-value="calculationDetails.keuangan.kapasitas_fiskal.label" class="h-6 text-orange-600" readonly /></td>
+              </tr>
+              <tr>
+                <td class="py-1 pl-4">Tingkat Pemerintahan</td>
+                <td colspan="2"><Input :model-value="calculationDetails.keuangan.tingkat_pemerintahan.label" class="h-6 text-orange-600" readonly /></td>
+              </tr>
+
+              <tr><td colspan="4" class="font-bold py-1 pt-4">Kualitas pencatatan keuangan</td></tr>
+              <tr>
+                <td class="py-1 pl-4 text-right pr-4">Syarat minimum 3x WDP atau WTP</td>
+                <td colspan="2"><Input :model-value="calculationDetails.keuangan.syarat_minimum_wtp.label" class="h-6 text-orange-600" readonly /></td>
+              </tr>
+              <!-- <tr>
+                <td class="py-1 pl-4 text-right pr-4">Frekuensi WTP</td>
+                <td><Input :model-value="calculationDetails.keuangan.frekuensi_wtp.value" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td></td>
+              </tr> -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Scores Section -->
       <div class="bg-gray-50/50 p-6 border border-gray-200 rounded-lg grid grid-cols-12 gap-4 items-center">
         <label class="col-span-6 font-medium">Kondisi Ekonomi</label>

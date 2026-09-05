@@ -125,13 +125,13 @@ class IndicativeRatingService
     public function hitungPadPendapatan(float $pad_pendapatan): array
     {
         $val = $pad_pendapatan;
-        if ($val > 0.23)
+        if ($val > 23)
             $rasio = 5;
-        elseif ($val > 0.13)
+        elseif ($val > 13)
             $rasio = 4;
-        elseif ($val > 0.08)
+        elseif ($val > 8)
             $rasio = 3;
-        elseif ($val > 0.05)
+        elseif ($val > 5)
             $rasio = 2;
         else
             $rasio = 1;
@@ -159,11 +159,11 @@ class IndicativeRatingService
     public function hitungOperasiPendapatan(float $operasi_pendapatan): array
     {
         $val = $operasi_pendapatan;
-        if ($val > 0.42)
+        if ($val > 42)
             $rasio = 5;
-        elseif ($val > 0.35)
+        elseif ($val > 35)
             $rasio = 4;
-        elseif ($val > 0.28)
+        elseif ($val > 28)
             $rasio = 3;
         elseif ($val > 0)
             $rasio = 2;
@@ -182,13 +182,13 @@ class IndicativeRatingService
     public function hitungBelanjaModal(float $belanja_modal): array
     {
         $val = $belanja_modal;
-        if ($val > 0.3)
+        if ($val > 30)
             $rasio = 5;
-        elseif ($val > 0.23)
+        elseif ($val > 23)
             $rasio = 4;
-        elseif ($val > 0.19)
+        elseif ($val > 19)
             $rasio = 3;
-        elseif ($val > 0.15)
+        elseif ($val > 15)
             $rasio = 2;
         else
             $rasio = 1;
@@ -205,13 +205,13 @@ class IndicativeRatingService
     public function hitungPegawaiBelanja(float $pegawai_belanja): array
     {
         $val = $pegawai_belanja;
-        if ($val <= 0.32)
+        if ($val <= 32)
             $rasio = 5;
-        elseif ($val <= 0.40)
+        elseif ($val <= 40)
             $rasio = 4;
-        elseif ($val <= 0.45)
+        elseif ($val <= 45)
             $rasio = 3;
-        elseif ($val <= 0.52)
+        elseif ($val <= 52)
             $rasio = 2;
         else
             $rasio = 1;
@@ -227,7 +227,7 @@ class IndicativeRatingService
      */
     public function hitungPadTigaTahun(float $pad_tiga_tahun): array
     {
-        $val = $pad_tiga_tahun * 100;
+        $val = $pad_tiga_tahun;
         if ($val >= 151)
             $rasio = 5;
         elseif ($val >= 111)
@@ -253,11 +253,11 @@ class IndicativeRatingService
         $val = $utang_pdrb;
         if ($val = 0)
             $rasio = 5;
-        elseif ($val < 0.004)
+        elseif ($val < 0.4)
             $rasio = 4;
-        elseif ($val < 0.01)
+        elseif ($val < 1)
             $rasio = 3;
-        elseif ($val < 0.03)
+        elseif ($val < 3)
             $rasio = 2;
         else
             $rasio = 1;
@@ -276,11 +276,11 @@ class IndicativeRatingService
         $val = $utang_pendapatan;
         if ($val = 0)
             $rasio = 5;
-        elseif ($val < 0.1)
+        elseif ($val < 10)
             $rasio = 4;
-        elseif ($val < 0.2)
+        elseif ($val < 20)
             $rasio = 3;
-        elseif ($val < 0.35)
+        elseif ($val < 35)
             $rasio = 2;
         else
             $rasio = 1;
@@ -297,13 +297,13 @@ class IndicativeRatingService
     public function hitungDsPendapatan(float $ds_pendapatan): array
     {
         $val = $ds_pendapatan;
-        if ($val < 0.10)
+        if ($val < 10)
             $rasio = 5;
-        elseif ($val < 0.20)
+        elseif ($val < 20)
             $rasio = 4;
-        elseif ($val < 0.35)
+        elseif ($val < 35)
             $rasio = 3;
-        elseif ($val < 0.75)
+        elseif ($val < 75)
             $rasio = 2;
         else
             $rasio = 1;

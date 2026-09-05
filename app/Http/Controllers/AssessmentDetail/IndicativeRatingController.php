@@ -29,6 +29,24 @@ class IndicativeRatingController extends Controller
         $financialIndicator = Financial_indicator::where('assessment_id', $assessment->id)->first();
 
         $totalGdp = $economyIndicator->gdp ?? 0;
+        $sectoralGdp = $gov->sectoral_gdp()->where('year', $year)->first();
+        $gdpConcentration = 0;
+        if ($sectoralGdp && $totalGdp > 0) {
+            $sectors = [
+                'agriculture_forestry_fishery', 'mining_quarrying', 'processing_industry',
+                'electricity_gas', 'water_waste', 'contruction', 'trade_vehicle_repair',
+                'transportation_warehousing', 'acomodation_food_beverage', 'information_communication',
+                'finance_insurance', 'real_estate', 'company_service', 'gov_adm_defense_sosial_security',
+                'education_service', 'health_social_service', 'other_service'
+            ];
+            $sumSquares = 0;
+            foreach ($sectors as $sector) {
+                $sectorValue = $sectoralGdp->$sector ?? 0;
+                $percentage = ($sectorValue / $totalGdp) * 100;
+                $sumSquares += pow($percentage, 2);
+            }
+            $gdpConcentration = $sumSquares;
+        }
 
         $ratingService = new \App\Services\IndicativeRatingService();
         $quantService = new \App\Services\QuantitativeRatingService();
@@ -41,9 +59,9 @@ class IndicativeRatingController extends Controller
         $skorPerkapita = $ratingService->hitungKategoriPDRB($gdpPerkapita)['rasio'];
         // Perhitungan: Kategori Konsentrasi PDRB
         // Tujuan: Mengkategorikan total PDRB daerah menjadi Tinggi, Sedang, atau Rendah untuk penyesuaian skor PDRB.
-        // Sumber Parameter: $totalGdp dari field gdp model Economy_indicator.
+        // Sumber Parameter: $gdpConcentration dari hasil perhitungan persentase sektoral
         // Diproses di: IndicativeRatingService->hitungKonsentrasiPDRB() lalu masuk ke QuantitativeRatingService->calculate()
-        $katKonsentrasi = $ratingService->hitungKonsentrasiPDRB($totalGdp);
+        $katKonsentrasi = $ratingService->hitungKonsentrasiPDRB($gdpConcentration);
         // Perhitungan: Tingkat Pengangguran Terbuka
         // Tujuan: Menentukan rasio berdasarkan tingkat pengangguran sebagai indikator kesehatan ekonomi.
         // Sumber Parameter: Field unemployment dari model Economy_indicator.
@@ -177,11 +195,99 @@ class IndicativeRatingController extends Controller
             'cashflow_availability' => 'Tidak',
         ]);
 
+        $calculationDetails = [
+            'ekonomi' => [
+                'pdrb_per_kapita' => [
+                    'value' => $gdpPerkapita,
+                    'label' => $ratingService->hitungKategoriPDRB($gdpPerkapita)['kategori'],
+                ],
+                'konsentrasi_pdrb' => [
+                    'value' => $gdpConcentration,
+                    'label' => $katKonsentrasi,
+                ],
+                'pertumbuhan_pdrb' => [
+                    'value' => $economyIndicator->gdp_growth ?? 0,
+                    'label' => '',
+                ],
+                'pdb_indonesia' => [
+                    'value' => 5.31,
+                    'label' => $ratingService->hitungPerbandinganPDRB($economyIndicator->gdp_growth ?? 0, 5.31),
+                ],
+                'pengangguran' => [
+                    'value' => $pengangguran,
+                    'label' => $ratingService->hitungKategoriTingkatPengangguran($pengangguran)['kategori'],
+                ],
+                'ipm' => [
+                    'value' => $ipm,
+                    'label' => $ratingService->hitungKategoriIPM($ipm)['kategori'],
+                ],
+            ],
+            'keuangan' => [
+                'pad_pendapatan' => [
+                    'value' => $padRevenue,
+                    'label' => $ratingService->hitungPadPendapatan($padRevenue)['kategori'],
+                ],
+                'volatilitas_pad' => [
+                    'value' => $volatilPad,
+                    'label' => $katVolatilPad,
+                ],
+                'operasi_pendapatan' => [
+                    'value' => $operasiPendapatan,
+                    'label' => $ratingService->hitungOperasiPendapatan($operasiPendapatan)['kategori'],
+                ],
+                'belanja_modal' => [
+                    'value' => $capSpending,
+                    'label' => $ratingService->hitungBelanjaModal($capSpending)['kategori'],
+                ],
+                'belanja_pegawai' => [
+                    'value' => $empSpending,
+                    'label' => $ratingService->hitungPegawaiBelanja($empSpending)['kategori'],
+                ],
+                'pad_tiga_tahun' => [
+                    'value' => $padTigaTahun,
+                    'label' => $ratingService->hitungPadTigaTahun($padTigaTahun)['kategori'],
+                ],
+                'utang_pdrb' => [
+                    'value' => $debtGdp,
+                    'label' => $ratingService->hitungUtangPdrb($debtGdp)['kategori'],
+                ],
+                'utang_pendapatan' => [
+                    'value' => $debtRevenue,
+                    'label' => $ratingService->hitungUtangPendapatan($debtRevenue)['kategori'],
+                ],
+                'ds_pendapatan' => [
+                    'value' => $dsRevenue,
+                    'label' => $ratingService->hitungDsPendapatan($dsRevenue)['kategori'],
+                ],
+                'dscr' => [
+                    'value' => $dscr,
+                    'label' => $ratingService->hitungDscr($dscr)['kategori'],
+                ],
+                'kapasitas_fiskal' => [
+                    'value' => null,
+                    'label' => $katKapasitasFiskal,
+                ],
+                'tingkat_pemerintahan' => [
+                    'value' => null,
+                    'label' => $govLevel,
+                ],
+                'syarat_minimum_wtp' => [
+                    'value' => null,
+                    'label' => $syaratMinimum,
+                ],
+                'frekuensi_wtp' => [
+                    'value' => $wtpCount,
+                    'label' => null,
+                ],
+            ]
+        ];
+
         return Inertia::render('assessmentDetail/EditIndicativeRating', [
             'assessment' => $assessment,
             'selfAssessment' => $selfAssessment,
             'ratingResult' => $ratingResult,
             'indicativeRating' => $indicativeRating,
+            'calculationDetails' => $calculationDetails,
         ]);
     }
 

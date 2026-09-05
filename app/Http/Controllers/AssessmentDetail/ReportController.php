@@ -18,6 +18,7 @@ class ReportController extends Controller
     {
         $assessment->load([
             'assessee.gov',
+            'assessee.user',
             'infrasConclusion',
             'debtService',
             'selfAssessment',

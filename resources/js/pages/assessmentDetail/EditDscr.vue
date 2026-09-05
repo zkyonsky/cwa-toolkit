@@ -60,8 +60,8 @@ const p_air_tanah_10 = computed(() => bpVal('underground_water_tax'));
 const p_pbjt_tl_10 = computed(() => bpVal('street_lighting_tax') + bpVal('electricity_tax'));
 const p_opsen_pkb_10 = computed(() => bpVal('opsen_vehicle_tax'));
 const p_blud = computed(() => bpVal('blud_revenue'));
-const p_rokok_50 = computed(() => (bpVal('cigarette_tax') - bpVal('shared_cigarette_tax')) * 0.5);
-const p_pkb_10 = computed(() => (bpVal('vehicle_tax') - bpVal('shared_vehicle_tax')) * 0.1);
+const p_rokok_50 = computed(() => Math.max(0, bpVal('cigarette_tax') - bpVal('shared_cigarette_tax')) * 0.5);
+const p_pkb_10 = computed(() => Math.max(0, bpVal('vehicle_tax') - bpVal('shared_vehicle_tax')) * 0.1);
 
 const padEarmarked = computed(() => {
   return p_air_tanah_10.value + p_pbjt_tl_10.value + p_opsen_pkb_10.value + p_blud.value + p_rokok_50.value + p_pkb_10.value;
@@ -238,6 +238,7 @@ const modalGroups = [
       { key: 'general_allocation_fund_education', label: 'DAU - Pendidikan' },
       { key: 'general_allocation_fund_health', label: 'DAU - Kesehatan' },
       { key: 'general_allocation_fund_public_work', label: 'DAU - Pekerjaan Umum' },
+      { key: 'p3k_allowance', label: 'DAU - P3K' },
       { key: 'general_allocation_fund_district', label: 'DAU - Kelurahan' },
     ]
   },
@@ -269,7 +270,6 @@ const modalGroups = [
       { key: 'sharing_fund_spending', label: 'Belanja Bagi Hasil' },
       { key: 'village_fund_allocation', label: 'Alokasi Dana Desa' },
       { key: 'employee_spending', label: 'Belanja Pegawai Total' },
-      { key: 'p3k_allowance', label: 'DAU - P3K / Tunjangan P3K' },
       { key: 'teacher_non_certification_allowance', label: 'DAK Tamsil' },
       { key: 'teacher_certification_allowance', label: 'DAK TPG' },
       { key: 'regional_teacher_additional_allowance', label: 'DAK TKG' },
@@ -312,7 +312,6 @@ const openAddModal = () => {
     central_gov_grant: 0,
     national_health_revenue: 0,
     sharing_fund_spending: 0,
-    availability_payment: 0,
     village_fund_allocation: 0,
     employee_spending: 0,
     teacher_non_certification_allowance: 0,
