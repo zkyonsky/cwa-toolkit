@@ -312,8 +312,8 @@ onUnmounted(() => {
 
             <!-- Bottom bar -->
             <div class="footer-bottom">
-                <p>&copy; {{ new Date().getFullYear() }} CWA Toolkit — <a href="https://klc2.kemenkeu.go.id"
-                        target="_blank">Kemenkeu</a></p>
+                <p>&copy; {{ new Date().getFullYear() }} crafted with ❤️ <a href="https://klc2.kemenkeu.go.id"
+                        target="_blank">@ptpkemenkeu</a></p>
             </div>
         </footer>
 

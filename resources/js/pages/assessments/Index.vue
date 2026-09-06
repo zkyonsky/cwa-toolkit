@@ -194,15 +194,21 @@ const handleDelete = (id: number) => {
                 <Building class="mr-1 size-3" /> Infrastruktur
               </Button>
             </Link>
-            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/budget-real`"
-              class="flex-1">
+            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/dscr`" class="flex-1">
               <Button variant="outline"
-                class="w-full justify-start text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
-                <Banknote class="mr-1 size-3" /> Realisasi APBD
+                class="w-full justify-start text-xs bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700">
+                <Calculator class="mr-1 size-3" /> DSCR
               </Button>
             </Link>
           </div>
           <div class="flex flex-wrap gap-2">
+            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/budget-real`"
+              class="flex-1">
+              <Button variant="outline"
+                class="w-full justify-start text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
+                <Banknote class="mr-1 size-3" /> Data Keuangan
+              </Button>
+            </Link>
             <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/financial-condition`"
               class="flex-1">
               <Button variant="outline"
@@ -217,12 +223,7 @@ const handleDelete = (id: number) => {
                 <LineChart class="mr-1 size-3" /> Kondisi Ekonomi
               </Button>
             </Link>
-            <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/dscr`" class="flex-1">
-              <Button variant="outline"
-                class="w-full justify-start text-xs bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700">
-                <Calculator class="mr-1 size-3" /> DSCR
-              </Button>
-            </Link>
+            
           </div>
           <div class="flex flex-wrap gap-2">
             <!-- <Link v-if="can('edit-assessments')" :href="`/assessment-details/${assessment.id}/debt-service`"
