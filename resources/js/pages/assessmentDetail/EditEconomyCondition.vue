@@ -191,44 +191,47 @@ const handleSectorBlur = (e: FocusEvent, key: string) => {
 };
 
 // Qualitatives based on generic estimates
-const povertyLabel = computed(() => {
-    const v = parseFloat(form.economyIndicator.poverty || 0);
-    if (v < 5) return 'Sangat Rendah';
-    if (v < 10) return 'Rendah';
-    if (v < 15) return 'Sedang';
-    if (v < 20) return 'Tinggi';
-    return 'Sangat Tinggi';
-});
+// const povertyLabel = computed(() => {
+//     const v = parseFloat(form.economyIndicator.poverty || 0);
+//     if (v < 5) return 'Sangat Rendah';
+//     if (v < 10) return 'Rendah';
+//     if (v < 15) return 'Sedang';
+//     if (v < 20) return 'Tinggi';
+//     return 'Sangat Tinggi';
+// });
 
 const unemploymentLabel = computed(() => {
     const v = parseFloat(form.economyIndicator.unemployment || 0);
-    if (v < 3) return 'Sangat Rendah';
-    if (v < 5) return 'Rendah';
-    if (v < 8) return 'Rata-rata/ Sedang';
-    if (v < 10) return 'Tinggi';
+    if (v <= 2) return 'Sangat Rendah';
+    if (v <= 4) return 'Rendah';
+    if (v <= 6) return 'Rata-rata/ Sedang';
+    if (v <= 8) return 'Tinggi';
     return 'Sangat Tinggi';
 });
 
 const hdciLabel = computed(() => {
     const v = parseFloat(form.economyIndicator.hdci || 0);
-    if (v >= 80) return 'Sangat Tinggi';
-    if (v >= 70) return 'Rata-rata/ Sedang';
-    if (v >= 60) return 'Sedang';
-    return 'Rendah';
+    if (v > 78) return 'Sangat Tinggi';
+    if (v > 74) return 'Tinggi';
+    if (v > 71) return 'Rata-rata/Sedang';
+    if (v > 66) return 'Rendah';
+    return 'Sangat Rendah';
 });
 
 const gdpPerkapitaLabel = computed(() => {
     const v = parseFloat(form.economyIndicator.gdp_perkapita || 0);
-    if (v < 35) return 'Rendah';
-    if (v < 80) return 'Sedang';
-    return 'Tinggi';
+    if (v > 90) return 'Sangat Tinggi';
+    if (v > 50) return 'Tinggi';
+    if (v > 37) return 'Rata-rata/Sedang';
+    if (v > 27) return 'Rendah';
+    return 'Sangat Rendah';
 });
 
-const gdpGrowthLabel = computed(() => {
-    const v = parseFloat(form.economyIndicator.gdp_growth || 0);
-    if (v >= 5) return 'Di atas Nasional';
-    return 'Di bawah Nasional';
-});
+// const gdpGrowthLabel = computed(() => {
+//     const v = parseFloat(form.economyIndicator.gdp_growth || 0);
+//     if (v >= 5) return 'Di atas Nasional';
+//     return 'Di bawah Nasional';
+// });
 
 const gdpConcentrationLabel = computed(() => {
     const v = gdpConcentration.value;
