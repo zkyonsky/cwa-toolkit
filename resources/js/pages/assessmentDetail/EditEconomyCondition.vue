@@ -508,12 +508,12 @@ const topSectors = computed(() => {
                                 <td class="text-right p-1">{{ formatNumber(comparison.hdci.avg) }}</td>
                                 <td class="text-right p-1">{{ formatNumber(comparison.hdci.max) }}</td>
                             </tr>
-                            <tr>
+                            <!-- <tr>
                                 <td class="font-bold p-1">PDRB HB per Kapita (Juta Rupiah)</td>
                                 <td class="text-right p-1">{{ formatNumber(comparison.gdp_perkapita.min) }}</td>
                                 <td class="text-right p-1">{{ formatNumber(comparison.gdp_perkapita.avg) }}</td>
                                 <td class="text-right p-1">{{ formatNumber(comparison.gdp_perkapita.max) }}</td>
-                            </tr>
+                            </tr> -->
                             <tr>
                                 <td class="font-bold p-1">Pertumbuhan PDRB ADHK</td>
                                 <td class="text-right p-1">{{ formatNumber(comparison.gdp_growth.min) }}%</td>

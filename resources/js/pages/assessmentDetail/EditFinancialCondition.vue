@@ -132,6 +132,15 @@ const dsRevenue = computed(() => {
   return (annualDs / latestTotalRev.value) * 100;
 });
 
+const penyebutDscr = computed(() => {
+  const ds = props.debtService;
+  if (!ds) return 0;
+  return (Number(ds.avg_annual_return) || 0) +
+    (Number(ds.avg_annual_interest) || 0) +
+    (Number(ds.avg_annual_cost) || 0) +
+    (Number(props.financing?.ds_exist) || 0);
+});
+
 const submit = () => {
   form.transform((data) => ({
     ...data,
@@ -444,7 +453,7 @@ const getPadRatioText = (ratio: number) => {
               <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ debtService?.dscr ?
                 debtService.dscr.toFixed(2) + 'x' : '0.00x' }}</div>
               <div class="col-span-4 bg-gray-50"></div>
-              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ (debtService?.dscr > 2.5) ? '>2,5x (Memenuhi)' : '<2,5x (Tidak Memenuhi)' }}</div>
+              <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ (penyebutDscr === 0 || !debtService?.dscr) ? 'Belum melakukan simulasi pinjaman baru' : ((debtService.dscr > 2.5) ? '>2,5x (Memenuhi)' : '<2,5x (Tidak Memenuhi)') }}</div>
             </div>
 
           </div>

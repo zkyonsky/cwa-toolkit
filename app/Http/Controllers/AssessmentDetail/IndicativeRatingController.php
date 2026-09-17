@@ -126,6 +126,13 @@ class IndicativeRatingController extends Controller
         // Tujuan: Mengukur kapasitas daerah (likuiditas) dalam membayar kewajiban utang.
         // Sumber Parameter: Field dscr dari model Financial_indicator.
         // Diproses di: IndicativeRatingService->hitungDscr() lalu masuk ke QuantitativeRatingService->calculate()
+        $debtService = $assessment->debtService;
+        $financings = $gov->financing()->get();
+        $dsExist = $financings->firstWhere('lender', 'SMI')->ds_exist ?? ($financings->first()->ds_exist ?? 0);
+        $penyebutDscr = $debtService
+            ? (($debtService->avg_annual_return ?? 0) + ($debtService->avg_annual_interest ?? 0) + ($debtService->avg_annual_cost ?? 0) + $dsExist)
+            : 0;
+
         $dscr = $financialIndicator->dscr ?? 0;
         $skorDscr = $ratingService->hitungDscr($dscr)['rasio'];
         // Perhitungan: Debt Service terhadap Total Pendapatan
@@ -257,11 +264,11 @@ class IndicativeRatingController extends Controller
                 ],
                 'ds_pendapatan' => [
                     'value' => $dsRevenue,
-                    'label' => $ratingService->hitungDsPendapatan($dsRevenue)['kategori'],
+                    'label' => ($penyebutDscr == 0 || $dsRevenue == 0) ? 'Belum melakukan simulasi pinjaman baru' : $ratingService->hitungDsPendapatan($dsRevenue)['kategori'],
                 ],
                 'dscr' => [
                     'value' => $dscr,
-                    'label' => $ratingService->hitungDscr($dscr)['kategori'],
+                    'label' => ($penyebutDscr == 0 || $dscr == 0) ? 'Belum melakukan simulasi pinjaman baru' : $ratingService->hitungDscr($dscr)['kategori'],
                 ],
                 'kapasitas_fiskal' => [
                     'value' => null,
