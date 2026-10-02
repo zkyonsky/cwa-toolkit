@@ -71,6 +71,11 @@ const formatPercent = (val: number) => {
     return val.toFixed(2) + '%';
 };
 
+const formatDscr = (val: number | null | undefined) => {
+    if (val === null || val === undefined) return '-';
+    return Number(val).toFixed(2).replace('.', ',') + 'x';
+};
+
 const formatDateID = (dateStr: string) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
@@ -541,7 +546,7 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                                 </tr>
                                 <tr>
                                     <td class="border border-gray-300 p-2 w-1/3">DSCR</td>
-                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ financialIndicator?.dscr ? financialIndicator.dscr.toFixed(2) + 'x' : '-' }}</td>
+                                    <td class="border border-gray-300 p-2 text-right w-1/6 font-semibold">{{ formatDscr(financialIndicator?.dscr) }}</td>
                                     <td colspan="2" class="w-2/6 border-gray-300"></td>
                                     <td class="pl-4 text-xs text-gray-600 italic w-1/6">{{ financialIndicator?.dscr && financialIndicator.dscr > 2.5 ? '>2,5x (Memenuhi)' : 'Tidak memenuhi' }}</td>
                                 </tr>
@@ -658,12 +663,12 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                                 <div>
-                                    <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kesimpulan</span>
+                                    <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Aspek</span>
                                     <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ plan.conclusion || '-' }}</p>
                                 </div>
                                 <div>
                                     <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tantangan</span>
-                                    <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ plan.challenge || '-' }}</p>
+                                    <div class="text-sm text-gray-800 prose prose-sm max-w-none" v-html="plan.challenge || '-'"></div>
                                 </div>
                             </div>
                             

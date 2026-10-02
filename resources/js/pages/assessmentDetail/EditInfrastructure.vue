@@ -192,6 +192,10 @@ const handlePriorityCurrencyBlur = (e: FocusEvent, index: number, field: string)
                         sektoral dari OPD terkait.</div>
                     <div>2. Usahakan deskripsi jelas, ringkas, dan berbasis angka/fakta (misalnya persentase layanan,
                         jumlah unit infrastruktur, atau standar pelayanan minimum).</div>
+                    <div>3. *Baik (Layanan sudah memadai, sesuai standar, dan relatif merata)</div>
+                    <div>4. **Cukup (Sebagian besar layanan sudah tersedia, namun masih ada kekurangan dalam hal kualitas/akses)</div>
+                    <div>5. ***Kurang (Layanan masih terbatas, sebagian besar kebutuhan belum terpenuhi)</div>
+                    <div>6. ****Penjelasan Singkat (Tambahkan uraian ringkas tentang alasan penilaian)</div>
                 </div>
 
                 <!-- REALISASI ANGGARAN -->
@@ -249,23 +253,19 @@ const handlePriorityCurrencyBlur = (e: FocusEvent, index: number, field: string)
                                 Infrastruktur</th>
                             <th
                                 class="w-[10%] border border-black bg-teal-500  text-white p-1 text-center font-bold text-xs">
-                                Baik<br>
-                                <span class="font-normal text-[10px]">(Layanan sudah memadai...)</span>
+                                *Baik<br>
                             </th>
                             <th
                                 class="w-[10%] border border-black bg-teal-500  text-white p-1 text-center font-bold text-xs">
-                                Cukup<br>
-                                <span class="font-normal text-[10px]">(Sebagian besar cukup...)</span>
+                                **Cukup<br>
                             </th>
                             <th
                                 class="w-[10%] border border-black bg-teal-500  text-white p-1 text-center font-bold text-xs">
-                                Kurang<br>
-                                <span class="font-normal text-[10px]">(Layanan masih kurang...)</span>
+                                ***Kurang<br>
                             </th>
                             <th
                                 class="w-auto border border-black bg-teal-500  text-white p-1 text-center font-bold text-xs">
-                                Penjelasan Singkat<br>
-                                <span class="font-normal text-[10px]">(Tambahkan uraian singkat...)</span>
+                                ****Penjelasan Singkat
                             </th>
                         </tr>
                     </thead>

@@ -52,6 +52,12 @@ const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('id-ID').format(value);
 };
 
+const formatDscr = (value: any) => {
+  const num = Number(value);
+  if (isNaN(num)) return "0,00";
+  return num.toFixed(2).replace('.', ',');
+};
+
 // Calculations as Computed Properties
 const bpVal = (key: string) => bp.value[key] || 0;
 
@@ -786,7 +792,7 @@ const deleteBudgetPlan = () => {
                 </tr>
                 <tr class="bg-teal-100 font-bold text-lg">
                   <td class="border p-2 pl-2">DSCR</td>
-                  <td class="border p-2 text-right">{{ dscrRatio.toFixed(2) }}</td>
+                  <td class="border p-2 text-right">{{ formatDscr(dscrRatio) }}</td>
                   <td class="border p-2"></td>
                 </tr>
               </tbody>

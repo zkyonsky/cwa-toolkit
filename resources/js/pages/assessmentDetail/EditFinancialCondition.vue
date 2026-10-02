@@ -173,6 +173,11 @@ const formatPercent = (value: number) => {
   return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + "%";
 };
 
+const formatDscr = (value: number | null | undefined) => {
+  if (!value) return "0,00x";
+  return Number(value).toFixed(2).replace('.', ',') + "x";
+};
+
 const getPadRatioText = (ratio: number) => {
   if (ratio == null) return "";
   if (ratio < 25) return "Kemandirian anggaran rendah sekali";
@@ -450,8 +455,7 @@ const getPadRatioText = (ratio: number) => {
 
             <div class="grid grid-cols-12 divide-x items-center">
               <div class="col-span-4 p-2">DSCR</div>
-              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ debtService?.dscr ?
-                debtService.dscr.toFixed(2) + 'x' : '0.00x' }}</div>
+              <div class="col-span-2 p-2 text-right border-r bg-gray-50 font-bold">{{ formatDscr(debtService?.dscr) }}</div>
               <div class="col-span-4 bg-gray-50"></div>
               <div class="col-span-2 p-2 text-xs italic text-gray-500">{{ (penyebutDscr === 0 || !debtService?.dscr) ? 'Belum melakukan simulasi pinjaman baru' : ((debtService.dscr > 2.5) ? '>2,5x (Memenuhi)' : '<2,5x (Tidak Memenuhi)') }}</div>
             </div>

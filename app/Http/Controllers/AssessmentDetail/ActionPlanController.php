@@ -17,26 +17,19 @@ class ActionPlanController extends Controller
         $actionPlans = $assessment->actionPlans;
 
         if ($actionPlans->isEmpty()) {
-            $defaults = collect();
+            $defaultAspects = [
+                'Kondisi Infrastruktur Existing',
+                'Kondisi Kemampuan Meminjam (DSCR)',
+                'Kondisi Keuangan/Fiskal',
+                'Kondisi Ekonomi',
+                'Kondisi Politik',
+            ];
 
-            if ($assessment->infrasConclusion && ($assessment->infrasConclusion->advantage || $assessment->infrasConclusion->challenge)) {
+            $defaults = collect();
+            foreach ($defaultAspects as $aspect) {
                 $defaults->push([
-                    'conclusion' => $assessment->infrasConclusion->advantage ?? '',
-                    'challenge' => $assessment->infrasConclusion->challenge ?? '',
-                    'action_plan' => '',
-                ]);
-            }
-            if ($assessment->debtService && ($assessment->debtService->advantage || $assessment->debtService->challenge)) {
-                $defaults->push([
-                    'conclusion' => $assessment->debtService->advantage ?? '',
-                    'challenge' => $assessment->debtService->challenge ?? '',
-                    'action_plan' => '',
-                ]);
-            }
-            if ($assessment->selfAssessment && ($assessment->selfAssessment->advantage || $assessment->selfAssessment->challenge)) {
-                $defaults->push([
-                    'conclusion' => $assessment->selfAssessment->advantage ?? '',
-                    'challenge' => $assessment->selfAssessment->challenge ?? '',
+                    'conclusion' => $aspect,
+                    'challenge' => '',
                     'action_plan' => '',
                 ]);
             }

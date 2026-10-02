@@ -86,6 +86,10 @@ const formatNumber = (val: number) => {
   return Number(val).toFixed(2);
 }
 
+const formatDscr = (val: any) => {
+  return Number(val || 0).toFixed(2).replace('.', ',');
+}
+
 </script>
 
 <template>
@@ -246,7 +250,7 @@ const formatNumber = (val: number) => {
               </tr>
               <tr>
                 <td class="py-1 pl-4">DSCR</td>
-                <td><Input :model-value="formatNumber(calculationDetails.keuangan.dscr.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
+                <td><Input :model-value="formatDscr(calculationDetails.keuangan.dscr.value)" class="h-6 text-right text-red-600 font-bold" readonly /></td>
                 <td class="px-2 text-orange-600">{{ calculationDetails.keuangan.dscr.label }}</td>
               </tr>
 

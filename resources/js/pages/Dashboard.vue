@@ -98,14 +98,67 @@ defineOptions({
     },
 });
 
+// Filter chart data to only 3 latest years and deduplicate repeating years (taking the latest assessment's entry)
+const filteredChartData = computed(() => {
+    if (!props.chartData?.years || props.chartData.years.length === 0) {
+        return {
+            years: [] as number[],
+            pad: { values: [] as number[], growth: [] as number[] },
+            autonomy: { pad: [] as number[], transfer: [] as number[], other: [] as number[] },
+            spending: { capital: [] as number[], employee: [] as number[] },
+            surplus: { operating: [] as number[], net: [] as number[] },
+        };
+    }
+
+    const rawYears = props.chartData.years;
+    // Map each year to its last index (taking the latest assessment data for duplicate years)
+    const lastIndexByYear = new Map<number, number>();
+    rawYears.forEach((year, index) => {
+        lastIndexByYear.set(year, index);
+    });
+
+    const distinctYears = Array.from(lastIndexByYear.keys()).sort((a, b) => a - b);
+    const selectedYears = distinctYears.slice(-3);
+    const selectedIndices = selectedYears.map(year => lastIndexByYear.get(year)!);
+
+    return {
+        years: selectedYears,
+        pad: {
+            values: selectedIndices.map(i => props.chartData.pad?.values?.[i] ?? 0),
+            growth: selectedIndices.map(i => props.chartData.pad?.growth?.[i] ?? 0),
+        },
+        autonomy: {
+            pad: selectedIndices.map(i => props.chartData.autonomy?.pad?.[i] ?? 0),
+            transfer: selectedIndices.map(i => props.chartData.autonomy?.transfer?.[i] ?? 0),
+            other: selectedIndices.map(i => props.chartData.autonomy?.other?.[i] ?? 0),
+        },
+        spending: {
+            capital: selectedIndices.map(i => props.chartData.spending?.capital?.[i] ?? 0),
+            employee: selectedIndices.map(i => props.chartData.spending?.employee?.[i] ?? 0),
+        },
+        surplus: {
+            operating: selectedIndices.map(i => props.chartData.surplus?.operating?.[i] ?? 0),
+            net: selectedIndices.map(i => props.chartData.surplus?.net?.[i] ?? 0),
+        },
+    };
+});
+
+const formatRupiahMiliar = (val: number) => {
+    const formatted = new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    }).format(Math.abs(val));
+    return val < 0 ? `-Rp ${formatted} Miliar` : `Rp ${formatted} Miliar`;
+};
+
 // Chart 1: PAD & Pertumbuhan PAD
 const padChartData = computed(() => ({
-    labels: props.chartData.years,
+    labels: filteredChartData.value.years,
     datasets: [
         {
             label: 'PAD',
             backgroundColor: '#63b3ac',
-            data: props.chartData.pad.values,
+            data: filteredChartData.value.pad.values.map(val => Math.round((val / 1_000_000_000) * 100) / 100),
             order: 2,
             yAxisID: 'y',
         },
@@ -113,7 +166,7 @@ const padChartData = computed(() => ({
             label: 'Pertumbuhan PAD (%)',
             borderColor: '#319795',
             backgroundColor: '#319795',
-            data: props.chartData.pad.growth,
+            data: filteredChartData.value.pad.growth,
             type: 'line' as const,
             order: 1,
             yAxisID: 'y1',
@@ -124,12 +177,34 @@ const padChartData = computed(() => ({
 const padChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+        tooltip: {
+            callbacks: {
+                label: (context: any) => {
+                    const label = context.dataset.label || '';
+                    const val = context.parsed.y;
+                    if (val === null || val === undefined) return label;
+                    if (context.dataset.yAxisID === 'y1') {
+                        const formatted = new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2,
+                        }).format(val);
+                        return `${label}: ${formatted}%`;
+                    }
+                    return `${label}: ${formatRupiahMiliar(val)}`;
+                },
+            },
+        },
+    },
     scales: {
         y: {
             type: 'linear' as const,
             display: true,
             position: 'left' as const,
-            title: { display: true, text: 'Rupiah' },
+            title: { display: true, text: 'Miliar Rupiah' },
+            ticks: {
+                callback: (value: any) => new Intl.NumberFormat('id-ID').format(value),
+            },
         },
         y1: {
             type: 'linear' as const,
@@ -143,22 +218,22 @@ const padChartOptions = {
 
 // Chart 2: Kemandirian Anggaran
 const autonomyChartData = computed(() => ({
-    labels: props.chartData.years,
+    labels: filteredChartData.value.years,
     datasets: [
         {
             label: '% PAD',
             backgroundColor: '#63b3ac',
-            data: props.chartData.autonomy.pad,
+            data: filteredChartData.value.autonomy.pad,
         },
         {
             label: '% Pendapatan Transfer',
             backgroundColor: '#ed8936',
-            data: props.chartData.autonomy.transfer,
+            data: filteredChartData.value.autonomy.transfer,
         },
         {
             label: '% Pendapatan Lain-lain',
             backgroundColor: '#a0aec0',
-            data: props.chartData.autonomy.other,
+            data: filteredChartData.value.autonomy.other,
         },
     ],
 }));
@@ -174,17 +249,17 @@ const autonomyChartOptions = {
 
 // Chart 3: Kemampuan Memperoleh Penghasilan (Spending)
 const spendingChartData = computed(() => ({
-    labels: props.chartData.years,
+    labels: filteredChartData.value.years,
     datasets: [
         {
             label: 'Belanja Modal',
             backgroundColor: '#63b3ac',
-            data: props.chartData.spending.capital,
+            data: filteredChartData.value.spending.capital,
         },
         {
             label: 'Belanja Pegawai',
             backgroundColor: '#ed8936',
-            data: props.chartData.spending.employee,
+            data: filteredChartData.value.spending.employee,
         },
     ],
 }));
@@ -199,17 +274,17 @@ const spendingChartOptions = {
 
 // Chart 4: Surplus/Defisit
 const surplusChartData = computed(() => ({
-    labels: props.chartData.years,
+    labels: filteredChartData.value.years,
     datasets: [
         {
             label: 'Surplus/Defisit Operasi',
             backgroundColor: '#63b3ac',
-            data: props.chartData.surplus.operating,
+            data: filteredChartData.value.surplus.operating.map(val => Math.round((val / 1_000_000_000) * 100) / 100),
         },
         {
             label: 'Surplus/Defisit Sebelum Pembiayaan',
             backgroundColor: '#ed8936',
-            data: props.chartData.surplus.net,
+            data: filteredChartData.value.surplus.net.map(val => Math.round((val / 1_000_000_000) * 100) / 100),
         },
     ],
 }));
@@ -217,8 +292,25 @@ const surplusChartData = computed(() => ({
 const surplusChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+        tooltip: {
+            callbacks: {
+                label: (context: any) => {
+                    const label = context.dataset.label || '';
+                    const val = context.parsed.y;
+                    if (val === null || val === undefined) return label;
+                    return `${label}: ${formatRupiahMiliar(val)}`;
+                },
+            },
+        },
+    },
     scales: {
-        y: { title: { display: true, text: 'Rupiah' } },
+        y: {
+            title: { display: true, text: 'Miliar Rupiah' },
+            ticks: {
+                callback: (value: any) => new Intl.NumberFormat('id-ID').format(value),
+            },
+        },
     },
 };
 </script>
@@ -378,7 +470,7 @@ const surplusChartOptions = {
             Belum ada data assessment.
         </div>
 
-        <div v-if="chartData.years.length > 0" class="grid gap-6 md:grid-cols-2">
+        <div v-if="filteredChartData.years.length > 0" class="grid gap-6 md:grid-cols-2">
             <Card class="shadow-sm border-sidebar-border/70">
                 <CardHeader>
                     <CardTitle class="text-lg font-semibold text-center">Pendapatan Asli Daerah</CardTitle>
@@ -399,7 +491,7 @@ const surplusChartOptions = {
 
             <Card class="shadow-sm border-sidebar-border/70">
                 <CardHeader>
-                    <CardTitle class="text-lg font-semibold text-center">Kemampuan Memperoleh Penghasilan (Belanja)
+                    <CardTitle class="text-lg font-semibold text-center">Efisiensi Belanja
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="h-[350px]">

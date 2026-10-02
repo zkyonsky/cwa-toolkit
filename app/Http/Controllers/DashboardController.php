@@ -33,11 +33,24 @@ class DashboardController extends Controller
             $selectedGovCode = $aceh ? $aceh->code : ($govs->first()->code ?? null);
         }
 
-        $budgetReals = Budget_real::where('gov_code', $selectedGovCode)
-            ->orderBy('year')
-            ->get();
+        $budgetReals = Budget_real::where('gov_code', $selectedGovCode)->get();
 
-        $processedData = $this->processChartData($budgetReals);
+        // Ambil data assessment terakhir untuk tahun yang berulang, lalu pilih 3 tahun terakhir yang tersedia
+        $allUniqueBudgetReals = $budgetReals
+            ->sortByDesc(function ($item) {
+                return [$item->updated_at ? $item->updated_at->timestamp : 0, $item->id];
+            })
+            ->unique('year')
+            ->keyBy('year');
+
+        $distinctYears = $allUniqueBudgetReals->pluck('year')->sort()->values();
+        $selectedYears = $distinctYears->slice(-3)->values();
+
+        $selectedBudgetReals = $selectedYears->map(function ($year) use ($allUniqueBudgetReals) {
+            return $allUniqueBudgetReals->get($year);
+        });
+
+        $processedData = $this->processChartData($selectedBudgetReals, $allUniqueBudgetReals);
 
         // Fetch user's assessments if role is User
         $userAssessments = [];
@@ -79,7 +92,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function processChartData($budgetReals)
+    private function processChartData($budgetReals, $allUniqueBudgetReals = null)
     {
         $years = [];
         $padData = [];
@@ -109,7 +122,13 @@ class DashboardController extends Controller
                 $growth = (($real->pad_after_cleansing / $prevPad) - 1) * 100;
                 $padGrowth[] = round($growth, 2);
             } else {
-                $padGrowth[] = 0;
+                $prevYearRecord = $allUniqueBudgetReals ? $allUniqueBudgetReals->get($real->year - 1) : null;
+                if ($prevYearRecord && $prevYearRecord->pad_after_cleansing > 0) {
+                    $growth = (($real->pad_after_cleansing / $prevYearRecord->pad_after_cleansing) - 1) * 100;
+                    $padGrowth[] = round($growth, 2);
+                } else {
+                    $padGrowth[] = 0;
+                }
             }
             $prevPad = $real->pad_after_cleansing;
 

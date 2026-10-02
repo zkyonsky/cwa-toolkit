@@ -39,6 +39,10 @@ const formatCurrency = (value: any) => {
   }).format(Number(value) || 0);
 };
 
+const formatDscr = (value: any) => {
+  return (Number(value) || 0).toFixed(2).replace('.', ',');
+};
+
 const parseNumber = (val: string): number => {
   const cleaned = val.replace(/\./g, '').replace(',', '.');
   return Number(cleaned) || 0;
@@ -157,7 +161,7 @@ const handlePlafondBlur = (e: FocusEvent) => {
               <div class="col-span-7 lg:col-span-8 flex items-center gap-2">
                 <span>:</span>
                 <div class="bg-green-100 px-3 py-1.5 rounded border border-green-200 w-1/3 shadow-sm">{{
-                  (debtService.dscr || 0).toFixed(2) }} kali</div>
+                  formatDscr(debtService.dscr) }} kali</div>
               </div>
 
               <div class="col-span-5 lg:col-span-4 text-sm"><Label>Batas Maksimal Pinjaman</Label></div>
