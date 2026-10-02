@@ -44,12 +44,7 @@ onUnmounted(() => {
 
 <template>
 
-    <Head title="Welcome - CWA Toolkit">
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-            rel="stylesheet" />
-    </Head>
+    <Head title="Welcome - CWA Toolkit" />
 
     <div class="welcome-page min-h-screen bg-white">
 
@@ -57,7 +52,10 @@ onUnmounted(() => {
         <header class="cwa-header">
             <div class="header-inner">
                 <div class="logo-group">
-                    <img src="/logo-kemenkeu-smi-wb.png" alt="Kemenkeu & SMI Logos" />
+                    <picture>
+                        <source srcset="/logo-kemenkeu-smi-wb.webp" type="image/webp" />
+                        <img src="/logo-kemenkeu-smi-wb.png" alt="Kemenkeu & SMI Logos" width="151" height="60" loading="eager" decoding="async" />
+                    </picture>
                 </div>
                 <nav>
                     <Link v-if="$page.props.auth.user" :href="dashboard().url" class="btn-primary-cwa">
@@ -136,7 +134,10 @@ onUnmounted(() => {
                     <div class="hero-image-wrapper">
                         <div class="hero-image-ring"></div>
                         <div class="hero-image-ring"></div>
-                        <img src="/assets/images/hero.png" alt="CWA Toolkit Illustration" />
+                        <picture>
+                            <source srcset="/assets/images/hero.webp" type="image/webp" />
+                            <img src="/assets/images/hero.png" alt="CWA Toolkit Illustration" width="520" height="520" fetchpriority="high" loading="eager" decoding="async" />
+                        </picture>
                     </div>
                 </div>
             </div>
@@ -182,7 +183,10 @@ onUnmounted(() => {
                     <!-- Image Column -->
                     <div class="image-col">
                         <div class="image-showcase reveal from-right">
-                            <img src="/assets/images/construction.png" alt="Infrastructure Construction" />
+                            <picture>
+                                <source srcset="/assets/images/construction.webp" type="image/webp" />
+                                <img src="/assets/images/construction.png" alt="Infrastructure Construction" loading="lazy" decoding="async" />
+                            </picture>
                             <div class="image-overlay"></div>
                         </div>
                     </div>
@@ -191,7 +195,7 @@ onUnmounted(() => {
         </section>
 
         <!-- ==================== TUJUAN ==================== -->
-        <section class="goals-section" :style="{ backgroundImage: 'url(/assets/images/goals.png)' }">
+        <section class="goals-section" :style="{ backgroundImage: 'url(/assets/images/goals.webp)' }">
             <div class="section-inner">
                 <!-- Section header -->
                 <div class="reveal" style="text-align: center; margin-bottom: 3rem;">
@@ -258,7 +262,10 @@ onUnmounted(() => {
                 <div class="footer-grid">
                     <!-- Mobile Image -->
                     <div class="footer-image-col reveal from-left">
-                        <img src="/assets/images/mobile.png" alt="CWA Mobile Application" />
+                        <picture>
+                            <source srcset="/assets/images/mobile.webp" type="image/webp" />
+                            <img src="/assets/images/mobile.png" alt="CWA Mobile Application" loading="lazy" decoding="async" />
+                        </picture>
                     </div>
 
                     <!-- Contact Info -->

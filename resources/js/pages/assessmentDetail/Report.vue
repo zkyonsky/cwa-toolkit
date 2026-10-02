@@ -442,8 +442,7 @@ const hasChartData = computed(() => props.chartData && props.chartData.years && 
                         </div>
                         <div class="border border-gray-300 p-4 rounded bg-white">
                             <h4 class="text-center font-semibold mb-2">Pendapatan Asli Daerah</h4>
-                            <!-- @ts-ignore: Mix chart types supported by chart.js but typed poorly by vue-chartjs -->
-                            <div class="h-[250px]"><Bar :data="padChartDataConf" :options="padChartOptionsConf" /></div>
+                            <div class="h-[250px]"><Bar :data="(padChartDataConf as any)" :options="padChartOptionsConf" /></div>
                         </div>
                     </div>
 

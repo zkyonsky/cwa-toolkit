@@ -778,21 +778,48 @@
 .stagger-children .reveal:nth-child(3) { transition-delay: 0.25s; }
 .stagger-children .reveal:nth-child(4) { transition-delay: 0.35s; }
 
-/* Hero entrance */
+/* Hero entrance - Optimized for LCP */
 .hero-enter {
-    opacity: 0;
-    transform: translateY(30px);
-    animation: heroEnter 0.9s var(--transition-smooth) forwards;
+    opacity: 1;
+    transform: translateY(0);
+    animation: heroEnter 0.35s var(--transition-smooth) both;
+    will-change: transform, opacity;
 }
 
-.hero-enter.d1 { animation-delay: 0.15s; }
-.hero-enter.d2 { animation-delay: 0.3s; }
-.hero-enter.d3 { animation-delay: 0.45s; }
-.hero-enter.d4 { animation-delay: 0.6s; }
-.hero-enter.d5 { animation-delay: 0.75s; }
+.hero-enter.d1 { animation-delay: 0.02s; }
+.hero-enter.d2 { animation-delay: 0.05s; }
+.hero-enter.d3 { animation-delay: 0.08s; }
+.hero-enter.d4 { animation-delay: 0.10s; }
+.hero-enter.d5 { animation-delay: 0.15s; }
 
 @keyframes heroEnter {
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0.2;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-enter {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Performance: defer offscreen section layout to accelerate initial hero LCP */
+.bg-section,
+.features-section,
+.methodology-section,
+.faq-section,
+.cta-section,
+.cwa-footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
 }
 
 /* Counter animation shimmer */

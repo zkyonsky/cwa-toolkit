@@ -476,7 +476,7 @@ const surplusChartOptions = {
                     <CardTitle class="text-lg font-semibold text-center">Pendapatan Asli Daerah</CardTitle>
                 </CardHeader>
                 <CardContent class="h-[350px]">
-                    <Bar :data="padChartData" :options="padChartOptions" />
+                    <Bar :data="(padChartData as any)" :options="padChartOptions" />
                 </CardContent>
             </Card>
 

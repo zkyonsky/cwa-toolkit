@@ -35,8 +35,13 @@
     <link rel="icon" href="/cwa.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600|inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+    @if(($page['component'] ?? '') === 'Welcome')
+    <link rel="preload" as="image" href="/assets/images/hero.webp" type="image/webp" fetchpriority="high">
+    @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
     <x-inertia::head>
